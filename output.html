@@ -304,9 +304,9 @@
           <td>${escapeHtml(g.org || '')}</td>
           <td>${escapeHtml(g.note || '')}</td>
           <td class="action-cell">
-            <button class="btn-icon" data-action="up" data-index="${i}" ${i === 0 ? 'disabled' : ''}>⬆</button>
-            <button class="btn-icon" data-action="down" data-index="${i}" ${i === guests.length - 1 ? 'disabled' : ''}>⬇</button>
-            <button class="btn-icon btn-icon-del" data-action="delete" data-index="${i}">🗑</button>
+            <button class="btn-icon btn-up" ${i === 0 ? 'disabled' : ''}>⬆</button>
+            <button class="btn-icon btn-down" ${i === guests.length - 1 ? 'disabled' : ''}>⬇</button>
+            <button class="btn-icon btn-icon-del">🗑</button>
           </td>
         </tr>
       `).join('');
@@ -406,18 +406,18 @@
       }
     });
 
-    guestList.addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-action]');
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-icon');
       if (!btn) return;
-      if (btn.disabled) return;
 
-      const index = parseInt(btn.dataset.index, 10);
-      const action = btn.dataset.action;
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const idx = tr.rowIndex - 1;
 
-      if (action === 'up') await moveGuest(index, 'up');
-      else if (action === 'down') await moveGuest(index, 'down');
-      else if (action === 'delete') {
-        const guest = guestsCache[index];
+      if (btn.classList.contains('btn-up')) await moveGuest(idx, 'up');
+      else if (btn.classList.contains('btn-down')) await moveGuest(idx, 'down');
+      else if (btn.classList.contains('btn-icon-del')) {
+        const guest = guestsCache[idx];
         if (guest) confirmDelete(guest.id, guest.name);
       }
     });
