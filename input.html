@@ -75,6 +75,8 @@
       transition: background 0.2s;
     }
     .btn:hover { background: #4338ca; }
+    .btn-batch { background: #059669; margin-top: 0; }
+    .btn-batch:hover { background: #047857; }
     .btn:disabled {
       background: #9ca3af;
       cursor: not-allowed;
@@ -105,6 +107,43 @@
     }
     .toast.success { background: #d1fae5; color: #065f46; display: block; }
     .toast.error { background: #fee2e2; color: #991b1b; display: block; }
+    .section-divider {
+      text-align: center;
+      margin: 28px 0 24px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 24px;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+    .section-divider span {
+      background: #f0f2f5;
+      padding: 0 12px;
+    }
+    .batch-hint {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .progress-bar {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      background: #4f46e5;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .result-count {
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -127,6 +166,18 @@
       <button type="submit" class="btn" id="submitBtn">送出通知</button>
     </form>
     <p class="hint">※ 只有姓名必填，單位與備註可留白</p>
+
+    <div class="section-divider"><span>⬇ 批次輸入 ⬇</span></div>
+
+    <div class="form-group">
+      <label>批次貼入（每行一筆，逗號分隔）</label>
+      <textarea id="batchInput" rows="6" placeholder="姓名1, 單位1, 備註1&#10;姓名2, 單位2, 備註2&#10;姓名3, 單位3,"></textarea>
+      <p class="batch-hint">格式：姓名, 單位, 備註（單位和備註可留空）</p>
+    </div>
+    <button class="btn btn-batch" id="batchBtn">📋 批次送出</button>
+    <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+    <div class="result-count" id="resultCount"></div>
+
     <div class="links">
       <a href="output.html">📋 檢視來賓清單 →</a>
     </div>
@@ -174,6 +225,64 @@
         submitBtn.disabled = false;
         submitBtn.textContent = '送出通知';
       }
+    });
+
+    // ── 批次輸入 ──
+    const batchInput = document.getElementById('batchInput');
+    const batchBtn = document.getElementById('batchBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const resultCount = document.getElementById('resultCount');
+
+    batchBtn.addEventListener('click', async () => {
+      const text = batchInput.value.trim();
+      if (!text) {
+        showToast('請貼入要批次輸入的資料', 'error');
+        return;
+      }
+
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const guests = lines.map(line => {
+        const parts = line.split(',').map(s => s.trim());
+        return { name: parts[0] || '', org: parts[1] || '', note: parts[2] || '' };
+      });
+
+      const valid = guests.filter(g => g.name);
+      if (valid.length === 0) {
+        showToast('沒有有效的資料（姓名必填）', 'error');
+        return;
+      }
+
+      batchBtn.disabled = true;
+      batchBtn.textContent = '送出中...';
+      progressBar.style.display = 'block';
+      resultCount.textContent = `0 / ${valid.length}`;
+
+      let success = 0;
+      for (let i = 0; i < valid.length; i++) {
+        try {
+          await db.collection('guests').add({
+            name: valid[i].name,
+            org: valid[i].org,
+            note: valid[i].note,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          success++;
+        } catch (err) {
+          console.error(`第 ${i + 1} 筆失敗:`, err);
+        }
+        const pct = ((i + 1) / valid.length) * 100;
+        progressFill.style.width = `${pct}%`;
+        resultCount.textContent = `${success} / ${valid.length}`;
+      }
+
+      showToast(`✅ ${success} 筆送出成功${success < valid.length ? `，${valid.length - success} 筆失敗` : ''}`, success > 0 ? 'success' : 'error');
+      if (success === valid.length) {
+        batchInput.value = '';
+      }
+      batchBtn.disabled = false;
+      batchBtn.textContent = '📋 批次送出';
+      setTimeout(() => { progressBar.style.display = 'none'; }, 2000);
     });
   </script>
 </body>
