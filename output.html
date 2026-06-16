@@ -399,15 +399,16 @@
       }
     });
 
-    guestList.addEventListener('click', (e) => {
+    guestList.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
+      if (btn.disabled) return;
 
       const index = parseInt(btn.dataset.index, 10);
       const action = btn.dataset.action;
 
-      if (action === 'up') moveGuest(index, 'up');
-      else if (action === 'down') moveGuest(index, 'down');
+      if (action === 'up') await moveGuest(index, 'up');
+      else if (action === 'down') await moveGuest(index, 'down');
       else if (action === 'delete') {
         const guest = guestsCache[index];
         if (guest) confirmDelete(guest.id, guest.name);
