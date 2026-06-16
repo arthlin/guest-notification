@@ -213,6 +213,7 @@
           name,
           org,
           note,
+          sortOrder: Date.now(),
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         showToast('✅ 送出成功！', 'success');
@@ -265,6 +266,7 @@
             name: valid[i].name,
             org: valid[i].org,
             note: valid[i].note,
+            sortOrder: Date.now() + i,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           success++;

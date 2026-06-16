@@ -148,6 +148,20 @@
     .btn-confirm:hover { background: #dc2626; }
     .btn-cancel { background: #e5e7eb; color: #374151; }
     .btn-cancel:hover { background: #d1d5db; }
+    .btn-icon {
+      background: none;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+    .btn-icon:hover { background: #f3f4f6; }
+    .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
+    .action-cell { white-space: nowrap; }
+    th:last-child, td:last-child { text-align: center; }
   </style>
 </head>
 <body>
@@ -166,21 +180,22 @@
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>姓名</th>
-          <th>單位名稱</th>
-          <th>備註</th>
-        </tr>
-      </thead>
-      <tbody id="guestList">
-        <tr><td colspan="3" class="loading">載入中...</td></tr>
-      </tbody>
-    </table>
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>單位名稱</th>
+            <th>備註</th>
+            <th style="width:110px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="guestList">
+          <tr><td colspan="4" class="loading">載入中...</td></tr>
+        </tbody>
+      </table>
   </div>
 
-  <!-- 確認對話框 -->
+  <!-- 確認清空對話框 -->
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
       <p>確定要清空所有來賓名單嗎？</p>
@@ -191,15 +206,35 @@
     </div>
   </div>
 
+  <!-- 確認刪除單筆對話框 -->
+  <div class="confirm-overlay" id="deleteOverlay">
+    <div class="confirm-box">
+      <p id="deleteText">確定要刪除這位來賓嗎？</p>
+      <div class="confirm-actions">
+        <button class="btn btn-cancel" id="deleteCancel">取消</button>
+        <button class="btn btn-confirm" id="deleteOk">確定刪除</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const guestList = document.getElementById('guestList');
     const updateTime = document.getElementById('updateTime');
     const countBadge = document.getElementById('countBadge');
     const refreshBtn = document.getElementById('refreshBtn');
     const clearBtn = document.getElementById('clearBtn');
+
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
+
+    const deleteOverlay = document.getElementById('deleteOverlay');
+    const deleteText = document.getElementById('deleteText');
+    const deleteOk = document.getElementById('deleteOk');
+    const deleteCancel = document.getElementById('deleteCancel');
+
+    let guestsCache = [];
+    let pendingDeleteId = null;
 
     function formatTime(date) {
       const d = date instanceof Date ? date : date.toDate();
@@ -213,18 +248,28 @@
 
       try {
         const snapshot = await db.collection('guests')
-          .orderBy('createdAt', 'asc')
+          .orderBy('sortOrder', 'asc')
           .get();
-        const guests = [];
-        snapshot.forEach(doc => guests.push({ id: doc.id, ...doc.data() }));
+        guestsCache = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          guestsCache.push({
+            id: doc.id,
+            sortOrder: data.sortOrder ?? 0,
+            name: data.name,
+            org: data.org,
+            note: data.note,
+            createdAt: data.createdAt
+          });
+        });
 
-        renderGuests(guests);
+        renderGuests(guestsCache);
 
         const now = new Date();
         updateTime.textContent = `⏰ 最後更新時間：${formatTime(now)}`;
       } catch (err) {
         console.error(err);
-        guestList.innerHTML = `<tr><td colspan="3" class="empty">❌ 讀取失敗，請稍後再試</td></tr>`;
+        guestList.innerHTML = `<tr><td colspan="4" class="empty">❌ 讀取失敗，請稍後再試</td></tr>`;
       } finally {
         refreshBtn.disabled = false;
         refreshBtn.textContent = '🔄 重新整理';
@@ -235,15 +280,20 @@
       countBadge.textContent = `${guests.length} 位來賓`;
 
       if (guests.length === 0) {
-        guestList.innerHTML = `<tr><td colspan="3" class="empty">目前尚無來賓</td></tr>`;
+        guestList.innerHTML = `<tr><td colspan="4" class="empty">目前尚無來賓</td></tr>`;
         return;
       }
 
-      guestList.innerHTML = guests.map(g => `
-        <tr>
+      guestList.innerHTML = guests.map((g, i) => `
+        <tr data-id="${escapeHtml(g.id)}">
           <td><strong>${escapeHtml(g.name)}</strong></td>
           <td>${escapeHtml(g.org || '')}</td>
           <td>${escapeHtml(g.note || '')}</td>
+          <td class="action-cell">
+            <button class="btn-icon" data-action="up" data-index="${i}" ${i === 0 ? 'disabled' : ''}>⬆</button>
+            <button class="btn-icon" data-action="down" data-index="${i}" ${i === guests.length - 1 ? 'disabled' : ''}>⬇</button>
+            <button class="btn-icon btn-icon-del" data-action="delete" data-index="${i}">🗑</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -253,6 +303,49 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    async function moveGuest(index, direction) {
+      const otherIndex = direction === 'up' ? index - 1 : index + 1;
+      if (otherIndex < 0 || otherIndex >= guestsCache.length) return;
+
+      const current = guestsCache[index];
+      const other = guestsCache[otherIndex];
+      const currentOrder = current.sortOrder;
+      const otherOrder = other.sortOrder;
+
+      const batch = db.batch();
+      batch.update(db.collection('guests').doc(current.id), { sortOrder: otherOrder });
+      batch.update(db.collection('guests').doc(other.id), { sortOrder: currentOrder });
+      await batch.commit();
+
+      await loadGuests();
+    }
+
+    function confirmDelete(id, name) {
+      pendingDeleteId = id;
+      deleteText.textContent = `確定要刪除「${escapeHtml(name)}」嗎？`;
+      deleteOverlay.classList.add('active');
+    }
+
+    async function deleteGuest() {
+      if (!pendingDeleteId) return;
+
+      deleteOk.disabled = true;
+      deleteOk.textContent = '刪除中...';
+
+      try {
+        await db.collection('guests').doc(pendingDeleteId).delete();
+        await loadGuests();
+      } catch (err) {
+        console.error(err);
+        alert('刪除失敗，請稍後再試');
+      } finally {
+        deleteOk.disabled = false;
+        deleteOk.textContent = '確定刪除';
+        deleteOverlay.classList.remove('active');
+        pendingDeleteId = null;
+      }
     }
 
     async function clearGuests() {
@@ -275,6 +368,8 @@
       }
     }
 
+    // ── 事件監聽 ──
+
     refreshBtn.addEventListener('click', loadGuests);
 
     clearBtn.addEventListener('click', () => {
@@ -282,14 +377,35 @@
     });
 
     confirmOk.addEventListener('click', clearGuests);
-
-    confirmCancel.addEventListener('click', () => {
-      confirmOverlay.classList.remove('active');
+    confirmCancel.addEventListener('click', () => confirmOverlay.classList.remove('active'));
+    confirmOverlay.addEventListener('click', (e) => {
+      if (e.target === confirmOverlay) confirmOverlay.classList.remove('active');
     });
 
-    confirmOverlay.addEventListener('click', (e) => {
-      if (e.target === confirmOverlay) {
-        confirmOverlay.classList.remove('active');
+    deleteOk.addEventListener('click', deleteGuest);
+    deleteCancel.addEventListener('click', () => {
+      deleteOverlay.classList.remove('active');
+      pendingDeleteId = null;
+    });
+    deleteOverlay.addEventListener('click', (e) => {
+      if (e.target === deleteOverlay) {
+        deleteOverlay.classList.remove('active');
+        pendingDeleteId = null;
+      }
+    });
+
+    guestList.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+
+      const index = parseInt(btn.dataset.index, 10);
+      const action = btn.dataset.action;
+
+      if (action === 'up') moveGuest(index, 'up');
+      else if (action === 'down') moveGuest(index, 'down');
+      else if (action === 'delete') {
+        const guest = guestsCache[index];
+        if (guest) confirmDelete(guest.id, guest.name);
       }
     });
 
