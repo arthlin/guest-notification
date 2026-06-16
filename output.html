@@ -161,6 +161,11 @@
     .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
     .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
     .action-cell { white-space: nowrap; }
+    tr { cursor: grab; user-select: none; }
+    tr:active { cursor: grabbing; }
+    tr.dragging { opacity: 0.4; }
+    tr.drag-over { border-bottom: 3px solid #4f46e5; }
+    .drag-indicator { position: absolute; left: 0; right: 0; height: 3px; background: #4f46e5; z-index: 10; pointer-events: none; }
     th:last-child, td:last-child { text-align: center; }
     td:first-child { white-space: nowrap; min-width: 6em; font-size: 1.3em; }
     td:nth-child(2) { min-width: 5em; }
@@ -352,6 +357,145 @@
 
       await loadGuests();
     }
+
+    async function reorderGuests(newOrder) {
+      const batch = db.batch();
+      let changed = false;
+      newOrder.forEach((g, i) => {
+        if (g.sortOrder !== i) {
+          g.sortOrder = i;
+          batch.update(db.collection('guests').doc(g.id), { sortOrder: i });
+          changed = true;
+        }
+      });
+      if (changed) await batch.commit();
+      guestsCache = newOrder;
+      renderGuests(guestsCache);
+      updateTime.textContent = `⏰ 最後更新時間：${formatTime(new Date())}`;
+    }
+
+    // ── HTML5 Drag & Drop (desktop) ──
+
+    guestList.addEventListener('dragstart', (e) => {
+      const row = e.target.closest('tr');
+      if (!row || row.querySelector('.empty')) return;
+      if (e.target.closest('.btn-icon')) return;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', row.rowIndex - 1);
+    });
+
+    guestList.addEventListener('dragover', (e) => {
+      const row = e.target.closest('tr');
+      if (!row || row.querySelector('.empty') || row.classList.contains('dragging')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const rect = row.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY > midY) {
+        row.classList.add('drag-over');
+      } else {
+        document.querySelectorAll('.drag-over').forEach(r => r !== row && r.classList.remove('drag-over'));
+      }
+    });
+
+    guestList.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const targetRow = e.target.closest('tr');
+      const srcIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      if (!targetRow || targetRow.querySelector('.empty') || isNaN(srcIdx)) return;
+
+      targetRow.classList.remove('drag-over');
+      const tgtIdx = targetRow.rowIndex - 1;
+      if (srcIdx === tgtIdx) return;
+
+      const rect = targetRow.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      let toIdx = e.clientY > midY ? tgtIdx + 1 : tgtIdx;
+      if (srcIdx < toIdx) toIdx--;
+
+      const newOrder = [...guestsCache];
+      const [moved] = newOrder.splice(srcIdx, 1);
+      newOrder.splice(toIdx, 0, moved);
+      await reorderGuests(newOrder);
+    });
+
+    guestList.addEventListener('dragend', () => {
+      document.querySelectorAll('.dragging, .drag-over').forEach(r => r.classList.remove('dragging', 'drag-over'));
+    });
+
+    guestList.addEventListener('dragleave', (e) => {
+      const row = e.target.closest('tr');
+      if (row) row.classList.remove('drag-over');
+    });
+
+    // ── Touch Drag & Drop (mobile) ──
+
+    let touchState = null;
+
+    guestList.addEventListener('touchstart', (e) => {
+      const row = e.target.closest('tr');
+      if (!row || row.querySelector('.empty')) return;
+      if (e.target.closest('.btn-icon')) return;
+
+      const touch = e.touches[0];
+      touchState = { row, startY: touch.clientY, startX: touch.clientX, moved: false };
+    }, { passive: true });
+
+    guestList.addEventListener('touchmove', (e) => {
+      if (!touchState) return;
+      const touch = e.touches[0];
+      const dy = Math.abs(touch.clientY - touchState.startY);
+      const dx = Math.abs(touch.clientX - touchState.startX);
+      if (dy < 10 && dx < 10) return;
+
+      touchState.moved = true;
+      e.preventDefault();
+
+      document.querySelectorAll('.drag-indicator').forEach(el => el.remove());
+      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
+
+      const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+      const overRow = els.find(el => el.tagName === 'TR' && el.closest('tbody'))?.closest('tr');
+      if (!overRow || overRow === touchState.row || overRow.querySelector('.empty')) return;
+
+      const rect = overRow.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const wrap = document.querySelector('.table-wrap');
+      wrap.style.position = 'relative';
+      const indicator = document.createElement('div');
+      indicator.className = 'drag-indicator';
+      indicator.style.top = touch.clientY > midY ? `${rect.bottom - 1}px` : `${rect.top - 1}px`;
+      wrap.appendChild(indicator);
+    }, { passive: false });
+
+    guestList.addEventListener('touchend', async (e) => {
+      if (!touchState || !touchState.moved) { touchState = null; return; }
+
+      const touch = e.changedTouches[0];
+      const srcIdx = touchState.row.rowIndex - 1;
+
+      document.querySelectorAll('.drag-indicator').forEach(el => el.remove());
+
+      const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+      const targetRow = els.find(el => el.tagName === 'TR' && el.closest('tbody'))?.closest('tr');
+      touchState = null;
+
+      if (!targetRow) return;
+      const tgtIdx = targetRow.rowIndex - 1;
+      if (srcIdx === tgtIdx) return;
+
+      const rect = targetRow.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      let toIdx = touch.clientY > midY ? tgtIdx + 1 : tgtIdx;
+      if (srcIdx < toIdx) toIdx--;
+
+      const newOrder = [...guestsCache];
+      const [moved] = newOrder.splice(srcIdx, 1);
+      newOrder.splice(toIdx, 0, moved);
+      await reorderGuests(newOrder);
+    }, { passive: true });
 
     function confirmDelete(id, name) {
       pendingDeleteId = id;
