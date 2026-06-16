@@ -316,8 +316,9 @@
 
       const current = guestsCache[index];
       const other = guestsCache[otherIndex];
-      const currentOrder = current.sortOrder;
-      const otherOrder = other.sortOrder;
+
+      const currentOrder = current.sortOrder != null ? current.sortOrder : index * 1000 + Date.now();
+      const otherOrder = other.sortOrder != null ? other.sortOrder : otherIndex * 1000 + Date.now();
 
       const batch = db.batch();
       batch.update(db.collection('guests').doc(current.id), { sortOrder: otherOrder });
