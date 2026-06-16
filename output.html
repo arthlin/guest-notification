@@ -248,6 +248,7 @@
 
       try {
         const snapshot = await db.collection('guests').get();
+        guestList.innerHTML = `<tr><td colspan="4" class="loading">讀到 ${snapshot.size} 筆資料...</td></tr>`;
         guestsCache = [];
         snapshot.forEach(doc => {
           const data = doc.data();
@@ -274,7 +275,7 @@
         updateTime.textContent = `⏰ 最後更新時間：${formatTime(now)}`;
       } catch (err) {
         console.error(err);
-        guestList.innerHTML = `<tr><td colspan="4" class="empty">❌ 讀取失敗，請稍後再試</td></tr>`;
+        guestList.innerHTML = `<tr><td colspan="4" class="empty">❌ 讀取失敗：${escapeHtml(err.message)}</td></tr>`;
       } finally {
         refreshBtn.disabled = false;
         refreshBtn.textContent = '🔄 重新整理';
