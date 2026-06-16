@@ -162,6 +162,18 @@
     .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
     .action-cell { white-space: nowrap; }
     th:last-child, td:last-child { text-align: center; }
+    td:first-child { white-space: nowrap; min-width: 4em; }
+    td:nth-child(2) { min-width: 5em; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    @media (max-width: 600px) {
+      body { padding: 16px 10px; }
+      h1 { font-size: 22px; }
+      th, td { padding: 10px 8px; font-size: 14px; }
+      td:first-child { min-width: 3em; }
+      td:nth-child(2) { min-width: 4em; }
+      th:last-child, td:last-child { width: 80px; }
+      .btn-icon { padding: 4px 6px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -180,6 +192,7 @@
       </div>
     </div>
 
+      <div class="table-wrap">
       <table>
         <thead>
           <tr>
@@ -193,6 +206,7 @@
           <tr><td colspan="4" class="loading">載入中...</td></tr>
         </tbody>
       </table>
+      </div>
   </div>
 
   <!-- 確認清空對話框 -->
