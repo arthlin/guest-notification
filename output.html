@@ -162,17 +162,22 @@
     .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
     .action-cell { white-space: nowrap; }
     th:last-child, td:last-child { text-align: center; }
-    td:first-child { white-space: nowrap; min-width: 4em; }
+    td:first-child { white-space: nowrap; min-width: 6em; font-size: 1.3em; }
     td:nth-child(2) { min-width: 5em; }
+    td:nth-child(3) { max-width: 6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85em; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     @media (max-width: 600px) {
       body { padding: 16px 10px; }
-      h1 { font-size: 22px; }
-      th, td { padding: 10px 8px; font-size: 14px; }
-      td:first-child { min-width: 3em; }
-      td:nth-child(2) { min-width: 4em; }
-      th:last-child, td:last-child { width: 80px; }
-      .btn-icon { padding: 4px 6px; font-size: 12px; }
+      h1 { font-size: 22px; padding: 0 10px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-left { justify-content: center; }
+      .toolbar > div { display: flex; justify-content: center; gap: 8px; }
+      th, td { padding: 10px 6px; }
+      td:first-child { min-width: 4em; font-size: 1.15em; }
+      td:nth-child(2) { min-width: 3.5em; font-size: 0.85em; }
+      td:nth-child(3) { max-width: 4em; font-size: 0.75em; }
+      th:last-child, td:last-child { width: 72px; }
+      .btn-icon { padding: 4px 5px; font-size: 11px; }
     }
   </style>
 </head>
