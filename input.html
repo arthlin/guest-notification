@@ -172,7 +172,7 @@
     <div class="form-group">
       <label>批次貼入（每行一筆，逗號分隔）</label>
       <textarea id="batchInput" rows="6" placeholder="姓名1, 單位1, 備註1&#10;姓名2, 單位2, 備註2&#10;姓名3, 單位3,"></textarea>
-      <p class="batch-hint">格式：姓名, 單位, 備註（單位和備註可留空）</p>
+      <p class="batch-hint">格式：姓名, 單位, 備註（全形半形逗號皆可，單位和備註可留空）</p>
     </div>
     <button class="btn btn-batch" id="batchBtn">📋 批次送出</button>
     <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
@@ -244,7 +244,7 @@
 
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       const guests = lines.map(line => {
-        const parts = line.split(',').map(s => s.trim());
+        const parts = line.split(/[,，]/).map(s => s.trim());
         return { name: parts[0] || '', org: parts[1] || '', note: parts[2] || '' };
       });
 
