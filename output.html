@@ -262,11 +262,20 @@
         });
 
         guestsCache.sort((a, b) => {
-          if (a.sortOrder !== undefined && b.sortOrder !== undefined) return a.sortOrder - b.sortOrder;
-          if (a.sortOrder !== undefined) return -1;
-          if (b.sortOrder !== undefined) return 1;
+          if (a.sortOrder != null && b.sortOrder != null) return a.sortOrder - b.sortOrder;
+          if (a.sortOrder != null) return -1;
+          if (b.sortOrder != null) return 1;
           return 0;
         });
+
+        const batch = db.batch();
+        guestsCache.forEach((g, i) => {
+          if (g.sortOrder == null) {
+            g.sortOrder = i * 1000;
+            batch.update(db.collection('guests').doc(g.id), { sortOrder: i * 1000 });
+          }
+        });
+        await batch.commit();
 
         renderGuests(guestsCache);
 
@@ -317,12 +326,9 @@
       const current = guestsCache[index];
       const other = guestsCache[otherIndex];
 
-      const currentOrder = current.sortOrder != null ? current.sortOrder : index * 1000 + Date.now();
-      const otherOrder = other.sortOrder != null ? other.sortOrder : otherIndex * 1000 + Date.now();
-
       const batch = db.batch();
-      batch.update(db.collection('guests').doc(current.id), { sortOrder: otherOrder });
-      batch.update(db.collection('guests').doc(other.id), { sortOrder: currentOrder });
+      batch.update(db.collection('guests').doc(current.id), { sortOrder: other.sortOrder });
+      batch.update(db.collection('guests').doc(other.id), { sortOrder: current.sortOrder });
       await batch.commit();
 
       await loadGuests();
