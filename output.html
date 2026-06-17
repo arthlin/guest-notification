@@ -164,8 +164,7 @@
     tr { cursor: grab; user-select: none; }
     tr:active { cursor: grabbing; }
     tr.dragging { opacity: 0.4; }
-    tr.drag-over { border-bottom: 3px solid #4f46e5; }
-    .drag-indicator { position: absolute; left: 0; right: 0; height: 3px; background: #4f46e5; z-index: 10; pointer-events: none; }
+    tr.drag-over td { border-bottom: 3px solid #4f46e5 !important; }
     th:last-child, td:last-child { text-align: center; }
     td:first-child { white-space: nowrap; min-width: 6em; font-size: 1.3em; }
     td:nth-child(2) { min-width: 5em; }
@@ -323,7 +322,7 @@
       }
 
       guestList.innerHTML = guests.map((g, i) => `
-        <tr data-id="${escapeHtml(g.id)}">
+        <tr draggable="true">
           <td><strong>${escapeHtml(g.name)}</strong></td>
           <td>${escapeHtml(g.org || '')}</td>
           <td>${escapeHtml(g.note || '')}</td>
@@ -374,55 +373,65 @@
       updateTime.textContent = `⏰ 最後更新時間：${formatTime(new Date())}`;
     }
 
-    // ── HTML5 Drag & Drop (desktop) ──
+    // ── Drag & Drop (desktop + mobile touch) ──
 
-    guestList.addEventListener('dragstart', (e) => {
-      const row = e.target.closest('tr');
-      if (!row || row.querySelector('.empty')) return;
-      if (e.target.closest('.btn-icon')) return;
-      row.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', row.rowIndex - 1);
-    });
+    let dragData = null;
 
-    guestList.addEventListener('dragover', (e) => {
-      const row = e.target.closest('tr');
-      if (!row || row.querySelector('.empty') || row.classList.contains('dragging')) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
+    function getRowIndex(row) {
+      const rows = [...guestList.querySelectorAll('tr')];
+      return rows.indexOf(row);
+    }
 
-      const rect = row.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      if (e.clientY > midY) {
-        row.classList.add('drag-over');
-      } else {
-        document.querySelectorAll('.drag-over').forEach(r => r !== row && r.classList.remove('drag-over'));
+    function getRowAtY(y) {
+      const rows = guestList.querySelectorAll('tr');
+      for (const row of rows) {
+        const r = row.getBoundingClientRect();
+        if (y >= r.top && y < r.bottom) return row;
       }
-    });
+      return null;
+    }
 
-    guestList.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      const targetRow = e.target.closest('tr');
-      const srcIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
-      if (!targetRow || targetRow.querySelector('.empty') || isNaN(srcIdx)) return;
+    function setDropIndicator(row, y) {
+      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
+      if (!row) return;
+      const r = row.getBoundingClientRect();
+      if (y > r.top + r.height / 2) {
+        const next = row.nextElementSibling;
+        if (next) next.classList.add('drag-over');
+      } else {
+        row.classList.add('drag-over');
+      }
+    }
 
-      targetRow.classList.remove('drag-over');
-      const tgtIdx = targetRow.rowIndex - 1;
-      if (srcIdx === tgtIdx) return;
+    async function doReorder(srcIdx, targetRow, y) {
+      if (!targetRow || srcIdx < 0) return;
+      const tgtIdx = getRowIndex(targetRow);
+      if (tgtIdx < 0 || srcIdx === tgtIdx) return;
 
-      const rect = targetRow.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      let toIdx = e.clientY > midY ? tgtIdx + 1 : tgtIdx;
+      const r = targetRow.getBoundingClientRect();
+      let toIdx = y > r.top + r.height / 2 ? tgtIdx + 1 : tgtIdx;
       if (srcIdx < toIdx) toIdx--;
 
       const newOrder = [...guestsCache];
       const [moved] = newOrder.splice(srcIdx, 1);
       newOrder.splice(toIdx, 0, moved);
       await reorderGuests(newOrder);
+    }
+
+    // Desktop
+    guestList.addEventListener('dragstart', (e) => {
+      const row = e.target.closest('tr');
+      if (!row || row.querySelector('.empty') || e.target.closest('.btn-icon')) return;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      dragData = getRowIndex(row);
     });
 
-    guestList.addEventListener('dragend', () => {
-      document.querySelectorAll('.dragging, .drag-over').forEach(r => r.classList.remove('dragging', 'drag-over'));
+    guestList.addEventListener('dragover', (e) => {
+      const row = e.target.closest('tr');
+      if (!row || row.classList.contains('dragging') || row.querySelector('.empty')) return;
+      e.preventDefault();
+      setDropIndicator(row, e.clientY);
     });
 
     guestList.addEventListener('dragleave', (e) => {
@@ -430,71 +439,43 @@
       if (row) row.classList.remove('drag-over');
     });
 
-    // ── Touch Drag & Drop (mobile) ──
+    guestList.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
+      const targetRow = e.target.closest('tr');
+      if (!targetRow || targetRow.querySelector('.empty')) return;
+      await doReorder(dragData, targetRow, e.clientY);
+    });
 
-    let touchState = null;
+    guestList.addEventListener('dragend', () => {
+      document.querySelectorAll('.dragging, .drag-over').forEach(r => r.classList.remove('dragging', 'drag-over'));
+      dragData = null;
+    });
 
+    // Mobile touch
     guestList.addEventListener('touchstart', (e) => {
       const row = e.target.closest('tr');
-      if (!row || row.querySelector('.empty')) return;
-      if (e.target.closest('.btn-icon')) return;
-
-      const touch = e.touches[0];
-      touchState = { row, startY: touch.clientY, startX: touch.clientX, moved: false };
+      if (!row || row.querySelector('.empty') || e.target.closest('.btn-icon')) return;
+      const t = e.touches[0];
+      dragData = { srcIdx: getRowIndex(row), row, startY: t.clientY };
     }, { passive: true });
 
     guestList.addEventListener('touchmove', (e) => {
-      if (!touchState) return;
-      const touch = e.touches[0];
-      const dy = Math.abs(touch.clientY - touchState.startY);
-      const dx = Math.abs(touch.clientX - touchState.startX);
-      if (dy < 10 && dx < 10) return;
-
-      touchState.moved = true;
+      if (!dragData || dragData.srcIdx == null) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientY - dragData.startY) < 10) return;
       e.preventDefault();
-
-      document.querySelectorAll('.drag-indicator').forEach(el => el.remove());
-      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
-
-      const els = document.elementsFromPoint(touch.clientX, touch.clientY);
-      const overRow = els.find(el => el.tagName === 'TR' && el.closest('tbody'))?.closest('tr');
-      if (!overRow || overRow === touchState.row || overRow.querySelector('.empty')) return;
-
-      const rect = overRow.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      const wrap = document.querySelector('.table-wrap');
-      wrap.style.position = 'relative';
-      const indicator = document.createElement('div');
-      indicator.className = 'drag-indicator';
-      indicator.style.top = touch.clientY > midY ? `${rect.bottom - 1}px` : `${rect.top - 1}px`;
-      wrap.appendChild(indicator);
+      const row = getRowAtY(t.clientY);
+      setDropIndicator(row, t.clientY);
     }, { passive: false });
 
     guestList.addEventListener('touchend', async (e) => {
-      if (!touchState || !touchState.moved) { touchState = null; return; }
-
-      const touch = e.changedTouches[0];
-      const srcIdx = touchState.row.rowIndex - 1;
-
-      document.querySelectorAll('.drag-indicator').forEach(el => el.remove());
-
-      const els = document.elementsFromPoint(touch.clientX, touch.clientY);
-      const targetRow = els.find(el => el.tagName === 'TR' && el.closest('tbody'))?.closest('tr');
-      touchState = null;
-
-      if (!targetRow) return;
-      const tgtIdx = targetRow.rowIndex - 1;
-      if (srcIdx === tgtIdx) return;
-
-      const rect = targetRow.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      let toIdx = touch.clientY > midY ? tgtIdx + 1 : tgtIdx;
-      if (srcIdx < toIdx) toIdx--;
-
-      const newOrder = [...guestsCache];
-      const [moved] = newOrder.splice(srcIdx, 1);
-      newOrder.splice(toIdx, 0, moved);
-      await reorderGuests(newOrder);
+      if (!dragData || dragData.srcIdx == null) return;
+      const t = e.changedTouches[0];
+      const row = getRowAtY(t.clientY);
+      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
+      await doReorder(dragData.srcIdx, row, t.clientY);
+      dragData = null;
     }, { passive: true });
 
     function confirmDelete(id, name) {
