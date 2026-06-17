@@ -373,43 +373,38 @@
       updateTime.textContent = `⏰ 最後更新時間：${formatTime(new Date())}`;
     }
 
-    // ── Drag & Drop (desktop + mobile touch) ──
+    // ── 拖曳排序 (滑鼠 + 觸控) ──
 
-    let dragData = null;
+    let dragState = null;
 
-    function getRowIndex(row) {
-      const rows = [...guestList.querySelectorAll('tr')];
-      return rows.indexOf(row);
-    }
-
-    function getRowAtY(y) {
+    function getRowAt(y) {
       const rows = guestList.querySelectorAll('tr');
       for (const row of rows) {
+        if (row.querySelector('.empty')) continue;
         const r = row.getBoundingClientRect();
-        if (y >= r.top && y < r.bottom) return row;
+        if (y >= r.top && y <= r.bottom) return { row, y, mid: r.top + r.height / 2 };
       }
       return null;
     }
 
-    function setDropIndicator(row, y) {
+    function showDropIndicator(at) {
       document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
-      if (!row) return;
-      const r = row.getBoundingClientRect();
-      if (y > r.top + r.height / 2) {
-        const next = row.nextElementSibling;
+      if (!at) return;
+      if (at.y > at.mid) {
+        const next = at.row.nextElementSibling;
         if (next) next.classList.add('drag-over');
       } else {
-        row.classList.add('drag-over');
+        at.row.classList.add('drag-over');
       }
     }
 
-    async function doReorder(srcIdx, targetRow, y) {
-      if (!targetRow || srcIdx < 0) return;
-      const tgtIdx = getRowIndex(targetRow);
+    async function commitReorder(srcIdx, at) {
+      if (!at || srcIdx < 0) return;
+      const rows = [...guestList.querySelectorAll('tr')];
+      const tgtIdx = rows.indexOf(at.row);
       if (tgtIdx < 0 || srcIdx === tgtIdx) return;
 
-      const r = targetRow.getBoundingClientRect();
-      let toIdx = y > r.top + r.height / 2 ? tgtIdx + 1 : tgtIdx;
+      let toIdx = at.y > at.mid ? tgtIdx + 1 : tgtIdx;
       if (srcIdx < toIdx) toIdx--;
 
       const newOrder = [...guestsCache];
@@ -418,64 +413,63 @@
       await reorderGuests(newOrder);
     }
 
-    // Desktop
-    guestList.addEventListener('dragstart', (e) => {
-      const row = e.target.closest('tr');
-      if (!row || row.querySelector('.empty') || e.target.closest('.btn-icon')) return;
+    function startDrag(row, clientY) {
+      if (!row || row.querySelector('.empty')) return;
+      const rows = [...guestList.querySelectorAll('tr')];
+      const idx = rows.indexOf(row);
+      if (idx < 0) return;
+      dragState = { srcIdx: idx, startY: clientY };
       row.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      dragData = getRowIndex(row);
-    });
+    }
 
-    guestList.addEventListener('dragover', (e) => {
-      const row = e.target.closest('tr');
-      if (!row || row.classList.contains('dragging') || row.querySelector('.empty')) return;
-      e.preventDefault();
-      setDropIndicator(row, e.clientY);
-    });
+    function moveDrag(clientY) {
+      if (!dragState) return;
+      if (Math.abs(clientY - dragState.startY) < 8) return;
+      showDropIndicator(getRowAt(clientY));
+    }
 
-    guestList.addEventListener('dragleave', (e) => {
-      const row = e.target.closest('tr');
-      if (row) row.classList.remove('drag-over');
-    });
-
-    guestList.addEventListener('drop', async (e) => {
-      e.preventDefault();
+    function endDrag(clientY) {
+      if (!dragState) return;
+      document.querySelectorAll('.dragging').forEach(r => r.classList.remove('dragging'));
       document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
-      const targetRow = e.target.closest('tr');
-      if (!targetRow || targetRow.querySelector('.empty')) return;
-      await doReorder(dragData, targetRow, e.clientY);
+      const at = getRowAt(clientY);
+      const src = dragState.srcIdx;
+      dragState = null;
+      if (at) commitReorder(src, at);
+    }
+
+    // 滑鼠
+    guestList.addEventListener('mousedown', (e) => {
+      if (e.button !== 0 || e.target.closest('.btn-icon')) return;
+      startDrag(e.target.closest('tr'), e.clientY);
     });
 
-    guestList.addEventListener('dragend', () => {
-      document.querySelectorAll('.dragging, .drag-over').forEach(r => r.classList.remove('dragging', 'drag-over'));
-      dragData = null;
+    document.addEventListener('mousemove', (e) => {
+      if (!dragState) return;
+      e.preventDefault();
+      moveDrag(e.clientY);
     });
 
-    // Mobile touch
+    document.addEventListener('mouseup', (e) => {
+      if (!dragState) return;
+      endDrag(e.clientY);
+    });
+
+    // 觸控
     guestList.addEventListener('touchstart', (e) => {
-      const row = e.target.closest('tr');
-      if (!row || row.querySelector('.empty') || e.target.closest('.btn-icon')) return;
-      const t = e.touches[0];
-      dragData = { srcIdx: getRowIndex(row), row, startY: t.clientY };
+      if (e.target.closest('.btn-icon')) return;
+      startDrag(e.target.closest('tr'), e.touches[0].clientY);
     }, { passive: true });
 
     guestList.addEventListener('touchmove', (e) => {
-      if (!dragData || dragData.srcIdx == null) return;
-      const t = e.touches[0];
-      if (Math.abs(t.clientY - dragData.startY) < 10) return;
+      if (!dragState) return;
       e.preventDefault();
-      const row = getRowAtY(t.clientY);
-      setDropIndicator(row, t.clientY);
+      moveDrag(e.touches[0].clientY);
     }, { passive: false });
 
-    guestList.addEventListener('touchend', async (e) => {
-      if (!dragData || dragData.srcIdx == null) return;
-      const t = e.changedTouches[0];
-      const row = getRowAtY(t.clientY);
-      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
-      await doReorder(dragData.srcIdx, row, t.clientY);
-      dragData = null;
+    guestList.addEventListener('touchend', (e) => {
+      if (!dragState) return;
+      endDrag(e.changedTouches[0].clientY);
     }, { passive: true });
 
     function confirmDelete(id, name) {
