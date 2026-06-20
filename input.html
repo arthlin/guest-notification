@@ -352,30 +352,17 @@
     const resultCount = document.getElementById('resultCount');
 
     // Connection status
-    let firestoreConnected = true;
+    let firestoreConnected = window.navigator.onLine;
 
-    db.collection('__health__').doc('_').onSnapshot({
-      next: () => {
-        firestoreConnected = true;
-        statusBadge.textContent = '連線正常';
-        statusBadge.className = 'status-badge online';
-      },
-      error: () => {
-        firestoreConnected = false;
-        statusBadge.textContent = '連線中斷';
-        statusBadge.className = 'status-badge offline';
-      }
-    });
+    function updateConnectionStatus() {
+      const online = window.navigator.onLine;
+      firestoreConnected = online;
+      statusBadge.textContent = online ? '連線正常' : '網路離線';
+      statusBadge.className = `status-badge ${online ? 'online' : 'offline'}`;
+    }
 
-    window.addEventListener('offline', () => {
-      statusBadge.textContent = '網路離線';
-      statusBadge.className = 'status-badge offline';
-    });
-
-    window.addEventListener('online', () => {
-      statusBadge.textContent = '連線正常';
-      statusBadge.className = 'status-badge online';
-    });
+    window.addEventListener('offline', updateConnectionStatus);
+    window.addEventListener('online', updateConnectionStatus);
 
     function showToast(message, type) {
       toast.textContent = message;

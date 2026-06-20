@@ -480,12 +480,13 @@
     }
 
     // Connection status
-    db.collection('__health__').doc('_').onSnapshot({
-      next: () => { statusBadge.textContent = '連線正常'; statusBadge.className = 'status-badge online'; },
-      error: () => { statusBadge.textContent = '連線中斷'; statusBadge.className = 'status-badge offline'; }
-    });
-    window.addEventListener('offline', () => { statusBadge.textContent = '網路離線'; statusBadge.className = 'status-badge offline'; });
-    window.addEventListener('online', () => { statusBadge.textContent = '連線正常'; statusBadge.className = 'status-badge online'; });
+    function updateConnectionStatus() {
+      const online = window.navigator.onLine;
+      statusBadge.textContent = online ? '連線正常' : '網路離線';
+      statusBadge.className = `status-badge ${online ? 'online' : 'offline'}`;
+    }
+    window.addEventListener('offline', updateConnectionStatus);
+    window.addEventListener('online', updateConnectionStatus);
 
     // Search
     searchInput.addEventListener('input', renderGuests);
