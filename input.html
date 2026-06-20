@@ -369,6 +369,14 @@
     to { opacity: 1; transform: translateY(0); }
   }
   .row-enter { animation: row-in 0.3s ease forwards; }
+  /* ── Print Styles ── */
+  @media print {
+    body { background: white; padding: 0; }
+    .dark-toggle, .status-bar, .links, .btn, .btn-batch,
+    .template-bar, .progress-area, .hint, .batch-hint, .shortcut-hint, .batch-counter,
+    .section-divider, .save-dialog-overlay, .qrcode-overlay { display: none !important; }
+    .container { box-shadow: none; border: none; padding: 0; }
+  }
   </style>
 </head>
 <body>
@@ -641,13 +649,16 @@
 
     function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-    async function loadTemplates() {
-      try {
-        const snap = await db.collection('templates').orderBy('name').get();
-        templatesCache = [];
-        snap.forEach(doc => { const d = doc.data(); templatesCache.push({ id: doc.id, name: d.name, lines: d.lines || [], count: d.count || 0 }); });
-        refreshTemplateSelect();
-      } catch (err) { console.error('載入範本失敗:', err); }
+    let unsubscribeTpl = null;
+
+    function startTemplatesListener() {
+      if (unsubscribeTpl) unsubscribeTpl();
+      unsubscribeTpl = db.collection('templates').orderBy('name')
+        .onSnapshot((snap) => {
+          templatesCache = [];
+          snap.forEach(doc => { const d = doc.data(); templatesCache.push({ id: doc.id, name: d.name, lines: d.lines || [], count: d.count || 0 }); });
+          refreshTemplateSelect();
+        }, (err) => { console.error('範本監聽失敗:', err); });
     }
 
     function refreshTemplateSelect() {
@@ -688,7 +699,6 @@
         const entry = { name, lines, count: lines.length, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
         if (!q.empty) await db.collection('templates').doc(q.docs[0].id).update(entry);
         else await db.collection('templates').add(entry);
-        await loadTemplates();
         templateSelect.value = name;
         saveDialog.classList.remove('active');
         showToast(`範本「${name}」已儲存`, 'success');
@@ -705,7 +715,6 @@
       const tpl = templatesCache[idx];
       try {
         await db.collection('templates').doc(tpl.id).delete();
-        await loadTemplates();
         showToast(`範本「${tpl.name}」已刪除`, 'info');
       } catch (err) { console.error(err); showToast('刪除範本失敗', 'error'); }
     });
@@ -715,7 +724,7 @@
       templateDelBtn.disabled = !templateSelect.value;
     });
 
-    loadTemplates();
+    startTemplatesListener();
 
     // ── QR Code ──
     const qrBtn = document.getElementById('qrBtn');
@@ -755,6 +764,11 @@
     }
     document.getElementById('darkToggle').addEventListener('click', toggleDarkMode);
     initDarkMode();
+
+    // Leave page warning
+    window.addEventListener('beforeunload', (e) => {
+      if (batchInput.value.trim()) { e.preventDefault(); e.returnValue = ''; }
+    });
 
     // Auto-focus name field
     document.getElementById('name').focus();

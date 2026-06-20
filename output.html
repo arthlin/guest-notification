@@ -502,7 +502,10 @@
 
     <div class="batch-bar" id="batchBar">
       <span>已選 <span class="count" id="selectedCount">0</span> 位</span>
-      <button class="btn btn-danger" id="batchDelBtn">刪除所選</button>
+      <div>
+        <button class="btn btn-primary" id="batchCheckinBtn" style="margin-right:6px">✓ 標記報到</button>
+        <button class="btn btn-danger" id="batchDelBtn">刪除所選</button>
+      </div>
     </div>
 
     <div class="table-wrap">
@@ -567,6 +570,7 @@
     const batchDelBtn = document.getElementById('batchDelBtn');
     const sortGroup = document.getElementById('sortGroup');
 
+    const batchCheckinBtn = document.getElementById('batchCheckinBtn');
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmText = document.getElementById('confirmText');
     const confirmOk = document.getElementById('confirmOk');
@@ -821,12 +825,26 @@
 
     // Check-in toggle
     async function toggleCheckin(id, currentlyCheckedIn) {
+      const guest = guestsCache.find(g => g.id === id);
+      if (!guest) return;
+      const prev = { checkedIn: guest.checkedIn, checkedInAt: guest.checkedInAt };
       try {
         if (currentlyCheckedIn) {
           await db.collection('guests').doc(id).update({ checkedIn: false, checkedInAt: firebase.firestore.FieldValue.delete() });
         } else {
           await db.collection('guests').doc(id).update({ checkedIn: true, checkedInAt: firebase.firestore.FieldValue.serverTimestamp() });
         }
+        const label = currentlyCheckedIn ? '取消報到' : '標記報到';
+        showToast(`已${label}`, 'undo', async () => {
+          try {
+            if (prev.checkedIn) {
+              await db.collection('guests').doc(id).update({ checkedIn: true, checkedInAt: prev.checkedInAt || firebase.firestore.FieldValue.serverTimestamp() });
+            } else {
+              await db.collection('guests').doc(id).update({ checkedIn: false, checkedInAt: firebase.firestore.FieldValue.delete() });
+            }
+            showToast('已復原', 'success');
+          } catch (err) { showToast('復原失敗', 'error'); }
+        });
       } catch (err) {
         console.error(err);
         showToast('操作失敗', 'error');
@@ -907,6 +925,41 @@
         console.error(err);
         showToast('刪除失敗', 'error');
       }
+    }
+
+    // Batch check-in
+    batchCheckinBtn.addEventListener('click', () => {
+      const ids = getCheckedIds();
+      if (ids.length === 0) return;
+      showConfirm(`確定將所選 ${ids.length} 位標記為已報到？`, () => executeBatchCheckin(ids, true));
+    });
+
+    async function executeBatchCheckin(ids, checkedIn) {
+      confirmOverlay.classList.remove('active');
+      selectAll.checked = false;
+      const prevStates = ids.map(id => guestsCache.find(g => g.id === id)).filter(Boolean).map(g => ({ id: g.id, checkedIn: g.checkedIn, checkedInAt: g.checkedInAt }));
+      try {
+        const batch = db.batch();
+        ids.forEach(id => {
+          const ref = db.collection('guests').doc(id);
+          if (checkedIn) batch.update(ref, { checkedIn: true, checkedInAt: firebase.firestore.FieldValue.serverTimestamp() });
+          else batch.update(ref, { checkedIn: false, checkedInAt: firebase.firestore.FieldValue.delete() });
+        });
+        await batch.commit();
+        const label = checkedIn ? '標記報到' : '取消報到';
+        showToast(`已${label} ${ids.length} 位`, 'undo', async () => {
+          try {
+            const restore = db.batch();
+            prevStates.forEach(s => {
+              const ref = db.collection('guests').doc(s.id);
+              if (s.checkedIn) restore.update(ref, { checkedIn: true, checkedInAt: s.checkedInAt || firebase.firestore.FieldValue.serverTimestamp() });
+              else restore.update(ref, { checkedIn: false, checkedInAt: firebase.firestore.FieldValue.delete() });
+            });
+            await restore.commit();
+            showToast('已復原', 'success');
+          } catch (err) { showToast('復原失敗', 'error'); }
+        });
+      } catch (err) { showToast('操作失敗', 'error'); }
     }
 
     function enterEditMode(id) {
@@ -1021,9 +1074,10 @@
       const [moved] = newOrder.splice(srcIdx, 1);
       newOrder.splice(toIdx, 0, moved);
       try {
+        const now = Date.now();
         const batch = db.batch();
         newOrder.forEach((g, i) => {
-          if (g.sortOrder !== i) batch.update(db.collection('guests').doc(g.id), { sortOrder: i });
+          batch.update(db.collection('guests').doc(g.id), { sortOrder: now + i });
         });
         await batch.commit();
       } catch (err) { console.error(err); showToast('排序失敗', 'error'); }
