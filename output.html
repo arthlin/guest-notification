@@ -138,7 +138,9 @@
       vertical-align: middle;
     }
     tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: #f8f9ff; }
+    tbody tr:nth-child(even) td { background: #fffef0; }
+    tbody tr:hover td { background: #e8ecff; }
+    tbody tr:nth-child(even):hover td { background: #e8ecff; }
     tr.dragging { opacity: 0.4; }
     tr.drag-over td { border-bottom: 3px solid #4f46e5 !important; background: #eef2ff !important; }
     th:last-child, td:last-child { text-align: center; }
