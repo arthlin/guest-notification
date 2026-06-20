@@ -402,8 +402,10 @@
       setTimeout(() => { toast.className = 'toast'; }, 3000);
     }
 
+    let sortSeq = 0;
     function genSortOrder(offset = 0) {
-      return Date.now() + offset + Math.floor(Math.random() * 100);
+      sortSeq++;
+      return Date.now() + sortSeq + offset;
     }
 
     // Single submission
