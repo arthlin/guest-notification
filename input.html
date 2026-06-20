@@ -16,24 +16,37 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 20px;
     }
     .container {
       background: white;
       border-radius: 16px;
       padding: 40px;
-      width: 480px;
-      max-width: 90vw;
+      width: 520px;
+      max-width: 100%;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      position: relative;
     }
     h1 {
       text-align: center;
       font-size: 28px;
-      margin-bottom: 32px;
+      margin-bottom: 8px;
       color: #1a1a2e;
     }
-    .form-group {
-      margin-bottom: 20px;
+    .status-bar {
+      text-align: center;
+      margin-bottom: 24px;
     }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-badge.online { background: #d1fae5; color: #065f46; }
+    .status-badge.offline { background: #fee2e2; color: #991b1b; }
+    .form-group { margin-bottom: 20px; }
     label {
       display: block;
       font-size: 15px;
@@ -41,10 +54,7 @@
       color: #333;
       margin-bottom: 6px;
     }
-    label .required {
-      color: #e74c3c;
-      margin-left: 2px;
-    }
+    label .required { color: #e74c3c; margin-left: 2px; }
     input, textarea {
       width: 100%;
       padding: 12px 14px;
@@ -52,16 +62,13 @@
       border-radius: 8px;
       font-size: 16px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     input:focus, textarea:focus {
       border-color: #4f46e5;
       box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
     }
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
+    textarea { resize: vertical; min-height: 60px; }
     .btn {
       width: 100%;
       padding: 14px;
@@ -72,15 +79,18 @@
       font-size: 18px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, opacity 0.2s;
     }
     .btn:hover { background: #4338ca; }
-    .btn-batch { background: #059669; margin-top: 0; }
-    .btn-batch:hover { background: #047857; }
     .btn:disabled {
       background: #9ca3af;
       cursor: not-allowed;
     }
+    .btn-batch {
+      background: #059669;
+      margin-top: 0;
+    }
+    .btn-batch:hover:not(:disabled) { background: #047857; }
     .hint {
       text-align: center;
       font-size: 13px;
@@ -104,9 +114,12 @@
       margin-bottom: 16px;
       font-size: 14px;
       text-align: center;
+      animation: fadeIn 0.3s;
     }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     .toast.success { background: #d1fae5; color: #065f46; display: block; }
     .toast.error { background: #fee2e2; color: #991b1b; display: block; }
+    .toast.info { background: #dbeafe; color: #1e40af; display: block; }
     .section-divider {
       text-align: center;
       margin: 28px 0 24px;
@@ -124,62 +137,205 @@
       color: #9ca3af;
       margin-top: 4px;
     }
-    .progress-bar {
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 2px;
-      margin-top: 12px;
-      overflow: hidden;
+    .batch-counter {
+      text-align: right;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .progress-area {
       display: none;
+      margin-top: 12px;
+    }
+    .progress-area.active { display: block; }
+    .progress-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
     }
     .progress-bar .fill {
       height: 100%;
-      background: #4f46e5;
+      background: linear-gradient(90deg, #4f46e5, #6366f1);
       width: 0%;
-      transition: width 0.3s;
+      transition: width 0.3s ease;
+      border-radius: 3px;
     }
+    .progress-bar .fill.error { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .progress-bar .fill.done { background: linear-gradient(90deg, #059669, #34d399); }
     .result-count {
       text-align: center;
       font-size: 13px;
       color: #6b7280;
       margin-top: 8px;
     }
+    .shortcut-hint {
+      text-align: right;
+      font-size: 11px;
+      color: #b0b0b0;
+      margin-top: 2px;
+    }
+    .template-bar {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f8f9ff;
+      border: 1px solid #e0e7ff;
+      border-radius: 10px;
+    }
+    .template-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4338ca;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .template-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .template-select {
+      flex: 1;
+      padding: 9px 10px;
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      min-width: 0;
+    }
+    .template-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .btn-sm {
+      padding: 8px 14px;
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: white;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-sm:hover:not(:disabled) { background: #eef2ff; }
+    .btn-sm:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-load { color: #4f46e5; }
+    .btn-load:hover:not(:disabled) { background: #4f46e5; color: white; }
+    .btn-save { color: #059669; }
+    .btn-save:hover:not(:disabled) { background: #059669; color: white; }
+    .btn-del-tpl { color: #ef4444; }
+    .btn-del-tpl:hover:not(:disabled) { background: #ef4444; color: white; }
+    .tpl-count {
+      font-size: 11px;
+      font-weight: 400;
+      color: #9ca3af;
+    }
+    .save-dialog-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .save-dialog-overlay.active { display: flex; }
+    .save-dialog {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 340px;
+      max-width: 90vw;
+      animation: fadeIn 0.2s;
+    }
+    .save-dialog h3 { font-size: 16px; margin-bottom: 16px; color: #1f2937; }
+    .save-dialog input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    .save-dialog input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .save-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-dialog-cancel { padding: 8px 20px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
+    .btn-dialog-confirm { padding: 8px 20px; border: none; border-radius: 8px; background: #4f46e5; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .btn-dialog-confirm:hover { background: #4338ca; }
+    .btn-dialog-cancel:hover { background: #f3f4f6; }
+    @media (max-width: 480px) {
+      .container { padding: 24px 16px; }
+      h1 { font-size: 22px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎤 遠端來賓通知</h1>
+    <h1>遠端來賓通知</h1>
+    <div class="status-bar">
+      <span class="status-badge online" id="statusBadge">連線正常</span>
+    </div>
     <div id="toast" class="toast"></div>
+
     <form id="guestForm">
       <div class="form-group">
         <label>姓名 <span class="required">*</span></label>
-        <input type="text" id="name" required placeholder="請輸入姓名">
+        <input type="text" id="name" required placeholder="請輸入姓名" autocomplete="off">
       </div>
       <div class="form-group">
         <label>單位名稱</label>
-        <input type="text" id="org" placeholder="請輸入單位名稱（選填）">
+        <input type="text" id="org" placeholder="請輸入單位名稱（選填）" autocomplete="off">
       </div>
       <div class="form-group">
         <label>備註</label>
-        <textarea id="note" placeholder="請輸入備註（選填）"></textarea>
+        <textarea id="note" placeholder="請輸入備註（選填）" rows="2"></textarea>
       </div>
       <button type="submit" class="btn" id="submitBtn">送出通知</button>
     </form>
     <p class="hint">※ 只有姓名必填，單位與備註可留白</p>
 
-    <div class="section-divider"><span>⬇ 批次輸入 ⬇</span></div>
+    <div class="section-divider"><span>批次輸入</span></div>
 
     <div class="form-group">
       <label>批次貼入（每行一筆，逗號分隔）</label>
       <textarea id="batchInput" rows="6" placeholder="姓名1, 單位1, 備註1&#10;姓名2, 單位2, 備註2&#10;姓名3, 單位3,"></textarea>
+      <div class="batch-counter"><span id="lineCount">0</span> 行</div>
       <p class="batch-hint">格式：姓名, 單位, 備註（全形半形逗號皆可，單位和備註可留空）</p>
+      <p class="shortcut-hint">快捷鍵：Ctrl + Enter</p>
     </div>
-    <button class="btn btn-batch" id="batchBtn">📋 批次送出</button>
-    <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
-    <div class="result-count" id="resultCount"></div>
+    <button class="btn btn-batch" id="batchBtn">批次送出</button>
+
+    <div class="template-bar" id="templateBar">
+      <label class="template-label">範本清單 <span class="tpl-count" id="tplCount"></span></label>
+      <div class="template-row">
+        <select class="template-select" id="templateSelect">
+          <option value="">-- 選擇範本 --</option>
+        </select>
+        <button class="btn-sm btn-load" id="templateLoadBtn" disabled>載入</button>
+        <button class="btn-sm btn-save" id="templateSaveBtn">新增</button>
+        <button class="btn-sm btn-del-tpl" id="templateDelBtn" disabled>刪除</button>
+      </div>
+    </div>
+
+    <div class="progress-area" id="progressArea">
+      <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+      <div class="result-count" id="resultCount"></div>
+    </div>
 
     <div class="links">
-      <a href="output.html">📋 檢視來賓清單 →</a>
+      <a href="output.html">檢視來賓清單</a>
+    </div>
+  </div>
+
+  <!-- 另存範本對話框 -->
+  <div class="save-dialog-overlay" id="saveDialog">
+    <div class="save-dialog">
+      <h3>另存批次清單為範本</h3>
+      <input type="text" id="saveDialogInput" placeholder="輸入範本名稱..." maxlength="30" autocomplete="off">
+      <div class="save-dialog-actions">
+        <button class="btn-dialog-cancel" id="saveDialogCancel">取消</button>
+        <button class="btn-dialog-confirm" id="saveDialogConfirm">儲存</button>
+      </div>
     </div>
   </div>
 
@@ -187,6 +343,39 @@
     const form = document.getElementById('guestForm');
     const submitBtn = document.getElementById('submitBtn');
     const toast = document.getElementById('toast');
+    const statusBadge = document.getElementById('statusBadge');
+    const batchInput = document.getElementById('batchInput');
+    const batchBtn = document.getElementById('batchBtn');
+    const lineCount = document.getElementById('lineCount');
+    const progressArea = document.getElementById('progressArea');
+    const progressFill = document.getElementById('progressFill');
+    const resultCount = document.getElementById('resultCount');
+
+    // Connection status
+    let firestoreConnected = true;
+
+    db.collection('__health__').doc('_').onSnapshot({
+      next: () => {
+        firestoreConnected = true;
+        statusBadge.textContent = '連線正常';
+        statusBadge.className = 'status-badge online';
+      },
+      error: () => {
+        firestoreConnected = false;
+        statusBadge.textContent = '連線中斷';
+        statusBadge.className = 'status-badge offline';
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      statusBadge.textContent = '網路離線';
+      statusBadge.className = 'status-badge offline';
+    });
+
+    window.addEventListener('online', () => {
+      statusBadge.textContent = '連線正常';
+      statusBadge.className = 'status-badge online';
+    });
 
     function showToast(message, type) {
       toast.textContent = message;
@@ -194,6 +383,11 @@
       setTimeout(() => { toast.className = 'toast'; }, 3000);
     }
 
+    function genSortOrder(offset = 0) {
+      return Date.now() + offset + Math.floor(Math.random() * 100);
+    }
+
+    // Single submission
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
@@ -202,6 +396,12 @@
 
       if (!name) {
         showToast('請輸入姓名', 'error');
+        document.getElementById('name').focus();
+        return;
+      }
+
+      if (!firestoreConnected) {
+        showToast('目前離線，請稍後再試', 'error');
         return;
       }
 
@@ -213,39 +413,44 @@
           name,
           org,
           note,
-          sortOrder: Date.now(),
+          sortOrder: genSortOrder(),
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        showToast('✅ 送出成功！', 'success');
+        showToast('送出成功！', 'success');
         form.reset();
         document.getElementById('name').focus();
       } catch (err) {
         console.error(err);
-        showToast('❌ 送出失敗，請稍後再試', 'error');
+        showToast('送出失敗，請稍後再試', 'error');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = '送出通知';
       }
     });
 
-    // ── 批次輸入 ──
-    const batchInput = document.getElementById('batchInput');
-    const batchBtn = document.getElementById('batchBtn');
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const resultCount = document.getElementById('resultCount');
+    // Batch line counter
+    batchInput.addEventListener('input', () => {
+      const lines = batchInput.value.split('\n').filter(l => l.trim());
+      lineCount.textContent = lines.length;
+    });
 
-    batchBtn.addEventListener('click', async () => {
+    // Batch submission
+    async function submitBatch() {
       const text = batchInput.value.trim();
       if (!text) {
         showToast('請貼入要批次輸入的資料', 'error');
         return;
       }
 
+      if (!firestoreConnected) {
+        showToast('目前離線，請稍後再試', 'error');
+        return;
+      }
+
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const guests = lines.map(line => {
+      const guests = lines.map((line, i) => {
         const parts = line.split(/[,，]/).map(s => s.trim());
-        return { name: parts[0] || '', org: parts[1] || '', note: parts[2] || '' };
+        return { name: parts[0] || '', org: parts[1] || '', note: parts[2] || '', sortOrder: genSortOrder(i) };
       });
 
       const valid = guests.filter(g => g.name);
@@ -256,36 +461,166 @@
 
       batchBtn.disabled = true;
       batchBtn.textContent = '送出中...';
-      progressBar.style.display = 'block';
-      resultCount.textContent = `0 / ${valid.length}`;
+      progressArea.classList.add('active');
+      progressFill.className = 'fill';
+      updateProgress(0, valid.length);
 
+      const BATCH_LIMIT = 500;
       let success = 0;
-      for (let i = 0; i < valid.length; i++) {
-        try {
-          await db.collection('guests').add({
-            name: valid[i].name,
-            org: valid[i].org,
-            note: valid[i].note,
-            sortOrder: Date.now() + i,
+      let fail = 0;
+
+      for (let i = 0; i < valid.length; i += BATCH_LIMIT) {
+        const chunk = valid.slice(i, i + BATCH_LIMIT);
+        const batch = db.batch();
+        chunk.forEach(g => {
+          const ref = db.collection('guests').doc();
+          batch.set(ref, {
+            name: g.name,
+            org: g.org,
+            note: g.note,
+            sortOrder: g.sortOrder,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-          success++;
+        });
+        try {
+          await batch.commit();
+          success += chunk.length;
         } catch (err) {
-          console.error(`第 ${i + 1} 筆失敗:`, err);
+          console.error('批次失敗:', err);
+          fail += chunk.length;
         }
-        const pct = ((i + 1) / valid.length) * 100;
-        progressFill.style.width = `${pct}%`;
-        resultCount.textContent = `${success} / ${valid.length}`;
+        updateProgress(success + fail, valid.length);
       }
 
-      showToast(`✅ ${success} 筆送出成功${success < valid.length ? `，${valid.length - success} 筆失敗` : ''}`, success > 0 ? 'success' : 'error');
-      if (success === valid.length) {
+      progressFill.className = fail === 0 ? 'fill done' : fail >= success ? 'fill error' : 'fill';
+
+      if (fail === 0) {
+        showToast(`${success} 筆全部送出成功！`, 'success');
         batchInput.value = '';
+        lineCount.textContent = '0';
+      } else if (success > 0) {
+        showToast(`${success} 筆成功，${fail} 筆失敗`, 'info');
+      } else {
+        showToast('批次送出全部失敗', 'error');
       }
+
       batchBtn.disabled = false;
-      batchBtn.textContent = '📋 批次送出';
-      setTimeout(() => { progressBar.style.display = 'none'; }, 2000);
+      batchBtn.textContent = '批次送出';
+      setTimeout(() => { progressArea.classList.remove('active'); }, 3000);
+    }
+
+    function updateProgress(done, total) {
+      const pct = total > 0 ? (done / total) * 100 : 0;
+      progressFill.style.width = `${pct}%`;
+      resultCount.textContent = `${done} / ${total}`;
+    }
+
+    batchBtn.addEventListener('click', submitBatch);
+
+    batchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        submitBatch();
+      }
     });
+
+    // ── 範本管理 ──
+    const STORAGE_KEY = 'gn_templates';
+    const templateSelect = document.getElementById('templateSelect');
+    const templateLoadBtn = document.getElementById('templateLoadBtn');
+    const templateSaveBtn = document.getElementById('templateSaveBtn');
+    const templateDelBtn = document.getElementById('templateDelBtn');
+    const tplCount = document.getElementById('tplCount');
+    const saveDialog = document.getElementById('saveDialog');
+    const saveDialogInput = document.getElementById('saveDialogInput');
+    const saveDialogConfirm = document.getElementById('saveDialogConfirm');
+    const saveDialogCancel = document.getElementById('saveDialogCancel');
+
+    function getTemplates() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+    }
+
+    function saveTemplates(templates) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+    }
+
+    function refreshTemplateSelect() {
+      const templates = getTemplates();
+      const val = templateSelect.value;
+      templateSelect.innerHTML = '<option value="">-- 選擇範本 --</option>' +
+        templates.map((t, i) => `<option value="${i}">${escHtml(t.name)} (${t.count} 位)</option>`).join('');
+      templateSelect.value = templates.find(t => t.name === val) ? val : '';
+      templateLoadBtn.disabled = !templateSelect.value;
+      templateDelBtn.disabled = !templateSelect.value;
+      tplCount.textContent = templates.length ? `(${templates.length} 個)` : '';
+    }
+
+    function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // Load template into batch textarea
+    templateLoadBtn.addEventListener('click', () => {
+      const idx = parseInt(templateSelect.value);
+      if (isNaN(idx)) return;
+      const templates = getTemplates();
+      const tpl = templates[idx];
+      if (!tpl) return;
+      batchInput.value = tpl.lines.join('\n');
+      batchInput.dispatchEvent(new Event('input'));
+      showToast(`已載入「${tpl.name}」(${tpl.count} 位)`, 'success');
+    });
+
+    // Save current batch as template
+    templateSaveBtn.addEventListener('click', () => {
+      const text = batchInput.value.trim();
+      if (!text) { showToast('批次區沒有資料可儲存', 'error'); return; }
+      saveDialogInput.value = '';
+      saveDialog.classList.add('active');
+      setTimeout(() => saveDialogInput.focus(), 100);
+    });
+
+    saveDialogConfirm.addEventListener('click', () => {
+      const name = saveDialogInput.value.trim();
+      if (!name) { showToast('請輸入範本名稱', 'error'); return; }
+      const text = batchInput.value.trim();
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      const templates = getTemplates();
+      const existing = templates.findIndex(t => t.name === name);
+      const entry = { name, lines, count: lines.length, updatedAt: new Date().toISOString() };
+      if (existing >= 0) templates[existing] = entry;
+      else templates.push(entry);
+      saveTemplates(templates);
+      refreshTemplateSelect();
+      templateSelect.value = name;
+      saveDialog.classList.remove('active');
+      showToast(`範本「${name}」已儲存`, 'success');
+    });
+
+    saveDialogCancel.addEventListener('click', () => saveDialog.classList.remove('active'));
+    saveDialogInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveDialogConfirm.click(); if (e.key === 'Escape') saveDialog.classList.remove('active'); });
+    saveDialog.addEventListener('click', (e) => { if (e.target === saveDialog) saveDialog.classList.remove('active'); });
+
+    // Delete template
+    templateDelBtn.addEventListener('click', () => {
+      const idx = parseInt(templateSelect.value);
+      if (isNaN(idx)) return;
+      const templates = getTemplates();
+      const name = templates[idx].name;
+      templates.splice(idx, 1);
+      saveTemplates(templates);
+      refreshTemplateSelect();
+      showToast(`範本「${name}」已刪除`, 'info');
+    });
+
+    templateSelect.addEventListener('change', () => {
+      templateLoadBtn.disabled = !templateSelect.value;
+      templateDelBtn.disabled = !templateSelect.value;
+    });
+
+    // Initial load
+    refreshTemplateSelect();
+
+    // Auto-focus name field
+    document.getElementById('name').focus();
   </script>
 </body>
 </html>

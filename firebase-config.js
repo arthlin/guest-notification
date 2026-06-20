@@ -9,3 +9,11 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+  if (err.code === 'failed-precondition') {
+    console.warn('離線持久化：多頁籤同時開啟，僅單一來源可用');
+  } else if (err.code === 'unimplemented') {
+    console.warn('離線持久化：瀏覽器不支援');
+  }
+});

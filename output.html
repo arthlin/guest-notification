@@ -15,57 +15,86 @@
       min-height: 100vh;
       padding: 40px 20px;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    .container { max-width: 960px; margin: 0 auto; }
     h1 {
       text-align: center;
       font-size: 28px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       color: #1a1a2e;
     }
+    .status-bar {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-badge.online { background: #d1fae5; color: #065f46; }
+    .status-badge.offline { background: #fee2e2; color: #991b1b; }
     .update-time {
       text-align: center;
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 24px;
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 20px;
     }
     .toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
     }
-    .toolbar-left {
+    .search-box {
       display: flex;
-      gap: 8px;
+      align-items: center;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s;
     }
+    .search-box:focus-within { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .search-box input {
+      border: none;
+      outline: none;
+      padding: 9px 8px;
+      font-size: 14px;
+      width: 160px;
+      background: transparent;
+    }
+    .search-box .icon { color: #9ca3af; font-size: 14px; }
     .btn {
-      padding: 10px 20px;
+      padding: 9px 16px;
       border: none;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
     }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover:not(:disabled) { background: #4338ca; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+    .btn-outline {
+      background: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
     }
-    .btn-refresh {
-      background: #4f46e5;
-      color: white;
-    }
-    .btn-refresh:hover:not(:disabled) { background: #4338ca; }
-    .btn-clear {
-      background: #ef4444;
-      color: white;
-    }
-    .btn-clear:hover:not(:disabled) { background: #dc2626; }
+    .btn-outline:hover:not(:disabled) { background: #f3f4f6; }
     .btn-back {
       background: #e5e7eb;
       color: #374151;
@@ -74,36 +103,6 @@
       align-items: center;
     }
     .btn-back:hover { background: #d1d5db; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-    th {
-      background: #1a1a2e;
-      color: white;
-      padding: 14px 16px;
-      text-align: left;
-      font-size: 15px;
-    }
-    td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 15px;
-      color: #1f2937;
-    }
-    tr:last-child td { border-bottom: none; }
-    tbody tr:nth-child(even) td { background: #fff3cd; }
-    tbody tr:hover td { background: #e5e7eb; }
-    .empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #9ca3af;
-      font-size: 16px;
-    }
     .count-badge {
       background: #e5e7eb;
       color: #374151;
@@ -111,12 +110,91 @@
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
+      white-space: nowrap;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      color: #1f2937;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8f9ff; }
+    tr.dragging { opacity: 0.4; }
+    tr.drag-over td { border-bottom: 3px solid #4f46e5 !important; background: #eef2ff !important; }
+    th:last-child, td:last-child { text-align: center; }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+      font-size: 16px;
     }
     .loading {
       text-align: center;
       padding: 60px 20px;
       color: #6b7280;
     }
+    .filtered-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .action-cell { white-space: nowrap; display: flex; gap: 4px; justify-content: center; }
+    .btn-icon {
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 4px 7px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s, border-color 0.15s;
+      line-height: 1;
+    }
+    .btn-icon:hover { background: #f3f4f6; border-color: #d1d5db; }
+    .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
+    .btn-icon-edit:hover { background: #dbeafe; border-color: #93c5fd; }
+    .btn-icon-save { background: #059669; color: white; border-color: #059669; }
+    .btn-icon-save:hover { background: #047857; }
+    .btn-icon-cancel { background: #e5e7eb; border-color: #d1d5db; }
+    .btn-icon-cancel:hover { background: #d1d5db; }
+
+    td.name-cell { font-weight: 600; min-width: 6em; }
+    td.org-cell { min-width: 5em; }
+    td.note-cell { max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85em; }
+    td.note-cell.expanded { white-space: normal; max-width: none; }
+
+    .edit-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #4f46e5;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(79,70,229,0.15);
+    }
+
     .confirm-overlay {
       display: none;
       position: fixed;
@@ -134,109 +212,157 @@
       width: 360px;
       max-width: 90vw;
       text-align: center;
+      animation: fadeIn 0.2s;
     }
-    .confirm-box p {
-      font-size: 16px;
-      margin-bottom: 24px;
-      color: #1f2937;
-    }
-    .confirm-actions {
-      display: flex;
-      gap: 12px;
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .confirm-box p { font-size: 16px; margin-bottom: 24px; color: #1f2937; }
+    .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+    .save-dialog-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
       justify-content: center;
+      align-items: center;
+      z-index: 100;
     }
-    .btn-confirm { background: #ef4444; color: white; }
-    .btn-confirm:hover { background: #dc2626; }
-    .btn-cancel { background: #e5e7eb; color: #374151; }
-    .btn-cancel:hover { background: #d1d5db; }
-    .btn-icon {
-      background: none;
+    .save-dialog-overlay.active { display: flex; }
+    .save-dialog {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 340px;
+      max-width: 90vw;
+      animation: fadeIn 0.2s;
+    }
+    .save-dialog h3 { font-size: 16px; margin-bottom: 4px; color: #1f2937; }
+    .save-dialog-info { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+    .save-dialog input {
+      width: 100%;
+      padding: 10px 12px;
       border: 1px solid #d1d5db;
-      border-radius: 6px;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.15s;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 16px;
     }
-    .btn-icon:hover { background: #f3f4f6; }
-    .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
-    .btn-icon-del:hover { background: #fee2e2; border-color: #fca5a5; }
-    .action-cell { white-space: nowrap; }
-    tr { cursor: grab; user-select: none; }
-    tr:active { cursor: grabbing; }
-    tr.dragging { opacity: 0.4; }
-    tr.drag-over td { border-bottom: 3px solid #4f46e5 !important; }
-    th:last-child, td:last-child { text-align: center; }
-    td:first-child { white-space: nowrap; min-width: 6em; font-size: 1.3em; }
-    td:nth-child(2) { min-width: 5em; }
-    td:nth-child(3) { max-width: 6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85em; }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .save-dialog input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .save-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-dialog-cancel { padding: 8px 20px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
+    .btn-dialog-confirm { padding: 8px 20px; border: none; border-radius: 8px; background: #4f46e5; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .btn-dialog-confirm:hover { background: #4338ca; }
+    .btn-dialog-cancel:hover { background: #f3f4f6; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 200;
+      display: none;
+      animation: toastIn 0.3s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    .toast.success { background: #d1fae5; color: #065f46; display: block; }
+    .toast.error { background: #fee2e2; color: #991b1b; display: block; }
+    .toast.info { background: #dbeafe; color: #1e40af; display: block; }
+
     @media (max-width: 600px) {
       body { padding: 16px 10px; }
-      h1 { font-size: 22px; padding: 0 10px; }
+      h1 { font-size: 22px; }
       .toolbar { flex-direction: column; align-items: stretch; }
-      .toolbar-left { justify-content: center; }
-      .toolbar > div { display: flex; justify-content: center; gap: 8px; }
-      th, td { padding: 10px 6px; }
-      td:first-child { min-width: 4em; font-size: 1.15em; }
-      td:nth-child(2) { min-width: 3.5em; font-size: 0.85em; }
-      td:nth-child(3) { max-width: 4em; font-size: 0.75em; }
-      th:last-child, td:last-child { width: 72px; }
-      .btn-icon { padding: 4px 5px; font-size: 11px; }
+      .toolbar-left, .toolbar-right { justify-content: center; }
+      .search-box input { width: 120px; }
+      th, td { padding: 10px 8px; font-size: 13px; }
+      td.name-cell { min-width: 4em; font-size: 1em; }
+      td.org-cell { min-width: 3em; font-size: 0.85em; }
+      td.note-cell { display: none; }
+      th:nth-child(3) { display: none; }
+      .action-cell { gap: 2px; }
+      .btn-icon { padding: 3px 5px; font-size: 11px; }
+      .btn { padding: 8px 12px; font-size: 12px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📋 遠端來賓通知清單</h1>
-    <p class="update-time" id="updateTime">⏰ 最後更新時間：--</p>
+    <h1>來賓通知清單</h1>
+    <div class="status-bar">
+      <span class="status-badge online" id="statusBadge">連線正常</span>
+    </div>
+    <p class="update-time" id="updateTime">--</p>
 
     <div class="toolbar">
       <div class="toolbar-left">
-        <a href="input.html" class="btn btn-back">➕ 回到輸入頁</a>
-        <span class="count-badge" id="countBadge">0 位來賓</span>
+        <a href="input.html" class="btn btn-back">新增來賓</a>
+        <span class="count-badge" id="countBadge">0 位</span>
+        <div class="search-box">
+          <span class="icon">&#x1F50D;</span>
+          <input type="text" id="searchInput" placeholder="搜尋姓名/單位..." autocomplete="off">
+        </div>
       </div>
-      <div>
-        <button class="btn btn-refresh" id="refreshBtn">🔄 重新整理</button>
-        <button class="btn btn-clear" id="clearBtn">🗑 清空名單</button>
+      <div class="toolbar-right">
+        <button class="btn btn-outline" id="templateOutBtn">儲存範本</button>
+        <button class="btn btn-outline" id="exportBtn">匯出</button>
+        <button class="btn btn-danger" id="clearBtn">清空</button>
       </div>
     </div>
 
-      <div class="table-wrap">
+    <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>姓名</th>
-            <th>單位名稱</th>
-            <th>備註</th>
-            <th style="width:110px">操作</th>
+            <th style="width:auto">姓名</th>
+            <th style="width:auto">單位</th>
+            <th style="width:auto">備註</th>
+            <th style="width:130px">操作</th>
           </tr>
         </thead>
         <tbody id="guestList">
           <tr><td colspan="4" class="loading">載入中...</td></tr>
         </tbody>
       </table>
-      </div>
+    </div>
   </div>
 
-  <!-- 確認清空對話框 -->
+  <div id="toast" class="toast"></div>
+
+  <!-- 清空確認 -->
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
       <p>確定要清空所有來賓名單嗎？</p>
       <div class="confirm-actions">
-        <button class="btn btn-cancel" id="confirmCancel">取消</button>
-        <button class="btn btn-confirm" id="confirmOk">確定清空</button>
+        <button class="btn btn-outline" id="confirmCancel">取消</button>
+        <button class="btn btn-danger" id="confirmOk">確定清空</button>
       </div>
     </div>
   </div>
 
-  <!-- 確認刪除單筆對話框 -->
+  <!-- 刪除確認 -->
   <div class="confirm-overlay" id="deleteOverlay">
     <div class="confirm-box">
-      <p id="deleteText">確定要刪除這位來賓嗎？</p>
+      <p id="deleteText">確定要刪除嗎？</p>
       <div class="confirm-actions">
-        <button class="btn btn-cancel" id="deleteCancel">取消</button>
-        <button class="btn btn-confirm" id="deleteOk">確定刪除</button>
+        <button class="btn btn-outline" id="deleteCancel">取消</button>
+        <button class="btn btn-danger" id="deleteOk">確定刪除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 儲存範本對話框 -->
+  <div class="save-dialog-overlay" id="saveDialog">
+    <div class="save-dialog">
+      <h3>將目前清單儲存為範本</h3>
+      <p class="save-dialog-info">將儲存 <span id="saveCount">0</span> 位來賓</p>
+      <input type="text" id="saveDialogInput" placeholder="輸入範本名稱..." maxlength="30" autocomplete="off">
+      <div class="save-dialog-actions">
+        <button class="btn-dialog-cancel" id="saveDialogCancel">取消</button>
+        <button class="btn-dialog-confirm" id="saveDialogConfirm">儲存</button>
       </div>
     </div>
   </div>
@@ -245,13 +371,15 @@
     const guestList = document.getElementById('guestList');
     const updateTime = document.getElementById('updateTime');
     const countBadge = document.getElementById('countBadge');
-    const refreshBtn = document.getElementById('refreshBtn');
+    const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const toast = document.getElementById('toast');
 
     const confirmOverlay = document.getElementById('confirmOverlay');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
-
     const deleteOverlay = document.getElementById('deleteOverlay');
     const deleteText = document.getElementById('deleteText');
     const deleteOk = document.getElementById('deleteOk');
@@ -259,129 +387,276 @@
 
     let guestsCache = [];
     let pendingDeleteId = null;
+    let editRowId = null;
+    let unsubscribe = null;
 
-    function formatTime(date) {
-      const d = date instanceof Date ? date : date.toDate();
-      const pad = n => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    function fmt(d) {
+      const date = d instanceof Date ? d : d?.toDate ? d.toDate() : new Date();
+      if (isNaN(date.getTime())) return '--';
+      const p = n => String(n).padStart(2, '0');
+      return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
     }
 
-    async function loadGuests() {
-      refreshBtn.disabled = true;
-      refreshBtn.textContent = '載入中...';
+    function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-      try {
-        const snapshot = await db.collection('guests').get();
-        guestsCache = [];
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          guestsCache.push({
-            id: doc.id,
-            sortOrder: data.sortOrder,
-            name: data.name,
-            org: data.org,
-            note: data.note,
-            createdAt: data.createdAt
-          });
-        });
-
-        guestsCache.sort((a, b) => {
-          if (a.sortOrder != null && b.sortOrder != null) return a.sortOrder - b.sortOrder;
-          if (a.sortOrder != null) return -1;
-          if (b.sortOrder != null) return 1;
-          return 0;
-        });
-
-        const batch = db.batch();
-        guestsCache.forEach((g, i) => {
-          if (g.sortOrder == null) {
-            g.sortOrder = i * 1000;
-            batch.update(db.collection('guests').doc(g.id), { sortOrder: i * 1000 });
-          }
-        });
-        await batch.commit();
-
-        renderGuests(guestsCache);
-
-        const now = new Date();
-        updateTime.textContent = `⏰ 最後更新時間：${formatTime(now)}`;
-      } catch (err) {
-        console.error(err);
-        guestList.innerHTML = `<tr><td colspan="4" class="empty">❌ 讀取失敗，請稍後再試</td></tr>`;
-      } finally {
-        refreshBtn.disabled = false;
-        refreshBtn.textContent = '🔄 重新整理';
-      }
+    function showToast(msg, type) {
+      toast.textContent = msg;
+      toast.className = `toast ${type}`;
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3000);
     }
 
-    function renderGuests(guests) {
-      countBadge.textContent = `${guests.length} 位來賓`;
+    function getFiltered() {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) return guestsCache;
+      return guestsCache.filter(g =>
+        (g.name && g.name.toLowerCase().includes(q)) ||
+        (g.org && g.org.toLowerCase().includes(q)) ||
+        (g.note && g.note.toLowerCase().includes(q))
+      );
+    }
 
-      if (guests.length === 0) {
-        guestList.innerHTML = `<tr><td colspan="4" class="empty">目前尚無來賓</td></tr>`;
+    function renderGuests() {
+      const filtered = getFiltered();
+      countBadge.textContent = `${guestsCache.length} 位`;
+
+      if (guestsCache.length === 0) {
+        guestList.innerHTML = '<tr><td colspan="4" class="empty">目前尚無來賓</td></tr>';
         return;
       }
 
-      guestList.innerHTML = guests.map((g, i) => `
-        <tr draggable="true">
-          <td><strong>${escapeHtml(g.name)}</strong></td>
-          <td>${escapeHtml(g.org || '')}</td>
-          <td>${escapeHtml(g.note || '')}</td>
-          <td class="action-cell">
-            <button class="btn-icon btn-up" ${i === 0 ? 'disabled' : ''}>⬆</button>
-            <button class="btn-icon btn-down" ${i === guests.length - 1 ? 'disabled' : ''}>⬇</button>
-            <button class="btn-icon btn-icon-del">🗑</button>
-          </td>
-        </tr>
-      `).join('');
+      if (filtered.length === 0) {
+        guestList.innerHTML = '<tr><td colspan="4" class="filtered-empty">無符合篩選條件的來賓</td></tr>';
+        return;
+      }
+
+      guestList.innerHTML = filtered.map((g, viewIdx) => {
+        const realIdx = guestsCache.indexOf(g);
+        const isEditing = editRowId === g.id;
+        return `
+          <tr draggable="true" data-index="${realIdx}" data-id="${g.id}">
+            <td class="name-cell">${isEditing ? `<input class="edit-input" id="edit_name_${g.id}" value="${esc(g.name)}">` : `<strong>${esc(g.name)}</strong>`}</td>
+            <td class="org-cell">${isEditing ? `<input class="edit-input" id="edit_org_${g.id}" value="${esc(g.org || '')}">` : esc(g.org || '')}</td>
+            <td class="note-cell" title="${esc(g.note || '')}">${isEditing ? `<input class="edit-input" id="edit_note_${g.id}" value="${esc(g.note || '')}">` : esc(g.note || '')}</td>
+            <td>
+              <div class="action-cell">
+                ${isEditing ? `
+                  <button class="btn-icon btn-icon-save" data-action="save" data-id="${g.id}">儲存</button>
+                  <button class="btn-icon btn-icon-cancel" data-action="cancel" data-id="${g.id}">取消</button>
+                ` : `
+                  <button class="btn-icon btn-up" data-action="up" data-id="${g.id}" ${viewIdx === 0 ? 'disabled' : ''} title="上移">&#x2B06;</button>
+                  <button class="btn-icon btn-down" data-action="down" data-id="${g.id}" ${viewIdx === filtered.length - 1 ? 'disabled' : ''} title="下移">&#x2B07;</button>
+                  <button class="btn-icon btn-icon-edit" data-action="edit" data-id="${g.id}" title="編輯">&#x270F;</button>
+                  <button class="btn-icon btn-icon-del" data-action="delete" data-id="${g.id}" title="刪除">&#x1F5D1;</button>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+    // Real-time listener
+    function startListener() {
+      if (unsubscribe) unsubscribe();
+      unsubscribe = db.collection('guests')
+        .orderBy('sortOrder')
+        .onSnapshot((snapshot) => {
+          guestsCache = [];
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            guestsCache.push({ id: doc.id, sortOrder: d.sortOrder ?? Infinity, name: d.name || '', org: d.org || '', note: d.note || '', createdAt: d.createdAt });
+          });
+          // If a row is being edited and its data changed externally, exit edit mode
+          if (editRowId && !guestsCache.find(g => g.id === editRowId)) {
+            editRowId = null;
+          }
+          renderGuests();
+          updateTime.textContent = fmt(new Date());
+        }, (err) => {
+          console.error('Snapshot error:', err);
+          guestList.innerHTML = '<tr><td colspan="4" class="empty">讀取失敗</td></tr>';
+        });
     }
 
-    async function moveGuest(index, direction) {
-      const otherIndex = direction === 'up' ? index - 1 : index + 1;
-      if (otherIndex < 0 || otherIndex >= guestsCache.length) return;
+    // Connection status
+    db.collection('__health__').doc('_').onSnapshot({
+      next: () => { statusBadge.textContent = '連線正常'; statusBadge.className = 'status-badge online'; },
+      error: () => { statusBadge.textContent = '連線中斷'; statusBadge.className = 'status-badge offline'; }
+    });
+    window.addEventListener('offline', () => { statusBadge.textContent = '網路離線'; statusBadge.className = 'status-badge offline'; });
+    window.addEventListener('online', () => { statusBadge.textContent = '連線正常'; statusBadge.className = 'status-badge online'; });
 
-      const current = guestsCache[index];
-      const other = guestsCache[otherIndex];
+    // Search
+    searchInput.addEventListener('input', renderGuests);
 
-      const batch = db.batch();
-      batch.update(db.collection('guests').doc(current.id), { sortOrder: other.sortOrder });
-      batch.update(db.collection('guests').doc(other.id), { sortOrder: current.sortOrder });
-      await batch.commit();
+    // Actions delegation
+    guestList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const idx = parseInt(tr.dataset.index);
+      if (isNaN(idx) || !guestsCache[idx]) return;
+      const guest = guestsCache[idx];
 
-      await loadGuests();
-    }
-
-    async function reorderGuests(newOrder) {
-      const batch = db.batch();
-      let changed = false;
-      newOrder.forEach((g, i) => {
-        if (g.sortOrder !== i) {
-          g.sortOrder = i;
-          batch.update(db.collection('guests').doc(g.id), { sortOrder: i });
-          changed = true;
+      switch (action) {
+        case 'up': case 'down': {
+          await moveGuest(idx, action);
+          break;
         }
+        case 'delete': {
+          pendingDeleteId = id;
+          deleteText.textContent = `確定要刪除「${guest.name}」嗎？`;
+          deleteOverlay.classList.add('active');
+          break;
+        }
+        case 'edit': {
+          enterEditMode(id);
+          break;
+        }
+        case 'save': {
+          await saveEdit(id);
+          break;
+        }
+        case 'cancel': {
+          editRowId = null;
+          renderGuests();
+          break;
+        }
+      }
+    });
+
+    // Keyboard: Enter to save in edit mode
+    guestList.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' && editRowId) {
+        e.preventDefault();
+        await saveEdit(editRowId);
+      }
+      if (e.key === 'Escape' && editRowId) {
+        editRowId = null;
+        renderGuests();
+      }
+    });
+
+    function enterEditMode(id) {
+      editRowId = id;
+      renderGuests();
+      requestAnimationFrame(() => {
+        const input = document.getElementById(`edit_name_${id}`);
+        if (input) { input.focus(); input.select(); }
       });
-      if (changed) await batch.commit();
-      guestsCache = newOrder;
-      renderGuests(guestsCache);
-      updateTime.textContent = `⏰ 最後更新時間：${formatTime(new Date())}`;
     }
 
-    // ── 拖曳排序 (滑鼠 + 觸控) ──
+    async function saveEdit(id) {
+      const nameEl = document.getElementById(`edit_name_${id}`);
+      const orgEl = document.getElementById(`edit_org_${id}`);
+      const noteEl = document.getElementById(`edit_note_${id}`);
+      if (!nameEl) return;
 
+      const name = nameEl.value.trim();
+      if (!name) { showToast('姓名不可空白', 'error'); nameEl.focus(); return; }
+
+      try {
+        await db.collection('guests').doc(id).update({
+          name,
+          org: orgEl.value.trim(),
+          note: noteEl.value.trim()
+        });
+        editRowId = null;
+        showToast('已更新', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('更新失敗', 'error');
+      }
+    }
+
+    async function moveGuest(idx, direction) {
+      const otherIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (otherIdx < 0 || otherIdx >= guestsCache.length) return;
+      const a = guestsCache[idx];
+      const b = guestsCache[otherIdx];
+      const tmp = a.sortOrder;
+      try {
+        const batch = db.batch();
+        batch.update(db.collection('guests').doc(a.id), { sortOrder: b.sortOrder });
+        batch.update(db.collection('guests').doc(b.id), { sortOrder: tmp });
+        await batch.commit();
+      } catch (err) {
+        console.error(err);
+        showToast('排序失敗', 'error');
+      }
+    }
+
+    function confirmDeleteGuest() {
+      if (!pendingDeleteId) return;
+      deleteOk.disabled = true;
+      deleteOk.textContent = '刪除中...';
+      db.collection('guests').doc(pendingDeleteId).delete()
+        .then(() => { showToast('已刪除', 'success'); })
+        .catch(err => { console.error(err); showToast('刪除失敗', 'error'); })
+        .finally(() => {
+          deleteOk.disabled = false;
+          deleteOk.textContent = '確定刪除';
+          deleteOverlay.classList.remove('active');
+          pendingDeleteId = null;
+        });
+    }
+
+    function clearAllGuests() {
+      confirmOk.disabled = true;
+      confirmOk.textContent = '清除中...';
+      db.collection('guests').get()
+        .then(snapshot => {
+          if (snapshot.empty) return;
+          const batch = db.batch();
+          snapshot.forEach(doc => batch.delete(doc.ref));
+          return batch.commit();
+        })
+        .then(() => { showToast('已清空', 'success'); })
+        .catch(err => { console.error(err); showToast('清除失敗', 'error'); })
+        .finally(() => {
+          confirmOk.disabled = false;
+          confirmOk.textContent = '確定清空';
+          confirmOverlay.classList.remove('active');
+        });
+    }
+
+    // Export
+    exportBtn.addEventListener('click', () => {
+      if (guestsCache.length === 0) { showToast('清單為空', 'info'); return; }
+      const lines = guestsCache.map(g => `${g.name},${g.org || ''},${g.note || ''}`);
+      const csv = '\uFEFF' + '姓名,單位,備註\n' + lines.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `來賓清單_${fmt(new Date()).slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`已匯出 ${guestsCache.length} 筆`, 'success');
+    });
+
+    // Clear & Delete event wiring
+    clearBtn.addEventListener('click', () => confirmOverlay.classList.add('active'));
+    confirmOk.addEventListener('click', clearAllGuests);
+    confirmCancel.addEventListener('click', () => confirmOverlay.classList.remove('active'));
+    confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) confirmOverlay.classList.remove('active'); });
+
+    deleteOk.addEventListener('click', confirmDeleteGuest);
+    deleteCancel.addEventListener('click', () => { deleteOverlay.classList.remove('active'); pendingDeleteId = null; });
+    deleteOverlay.addEventListener('click', (e) => { if (e.target === deleteOverlay) { deleteOverlay.classList.remove('active'); pendingDeleteId = null; } });
+
+    // Drag & drop (mouse + touch)
     let dragState = null;
 
     function getRowAt(y) {
-      const rows = guestList.querySelectorAll('tr');
+      const rows = guestList.querySelectorAll('tr[data-index]');
       for (const row of rows) {
-        if (row.querySelector('.empty')) continue;
         const r = row.getBoundingClientRect();
         if (y >= r.top && y <= r.bottom) return { row, y, mid: r.top + r.height / 2 };
       }
@@ -391,35 +666,37 @@
     function showDropIndicator(at) {
       document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
       if (!at) return;
-      if (at.y > at.mid) {
-        const next = at.row.nextElementSibling;
-        if (next) next.classList.add('drag-over');
-      } else {
-        at.row.classList.add('drag-over');
-      }
+      if (at.y > at.mid) { const n = at.row.nextElementSibling; if (n) n.classList.add('drag-over'); }
+      else at.row.classList.add('drag-over');
     }
 
     async function commitReorder(srcIdx, at) {
       if (!at || srcIdx < 0) return;
-      const rows = [...guestList.querySelectorAll('tr')];
+      const rows = [...guestList.querySelectorAll('tr[data-index]')];
       const tgtIdx = rows.indexOf(at.row);
       if (tgtIdx < 0 || srcIdx === tgtIdx) return;
-
       let toIdx = at.y > at.mid ? tgtIdx + 1 : tgtIdx;
       if (srcIdx < toIdx) toIdx--;
-
       const newOrder = [...guestsCache];
       const [moved] = newOrder.splice(srcIdx, 1);
       newOrder.splice(toIdx, 0, moved);
-      await reorderGuests(newOrder);
+      try {
+        const batch = db.batch();
+        newOrder.forEach((g, i) => {
+          if (g.sortOrder !== i) batch.update(db.collection('guests').doc(g.id), { sortOrder: i });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Reorder failed:', err);
+        showToast('排序失敗', 'error');
+      }
     }
 
     function startDrag(row, clientY) {
-      if (!row || row.querySelector('.empty')) return;
-      const rows = [...guestList.querySelectorAll('tr')];
+      const rows = [...guestList.querySelectorAll('tr[data-index]')];
       const idx = rows.indexOf(row);
       if (idx < 0) return;
-      dragState = { srcIdx: idx, startY: clientY };
+      dragState = { srcIdx: parseInt(row.dataset.index), startY: clientY };
       row.classList.add('dragging');
     }
 
@@ -431,137 +708,64 @@
 
     function endDrag(clientY) {
       if (!dragState) return;
-      document.querySelectorAll('.dragging').forEach(r => r.classList.remove('dragging'));
-      document.querySelectorAll('.drag-over').forEach(r => r.classList.remove('drag-over'));
+      document.querySelectorAll('.dragging, .drag-over').forEach(r => r.classList.remove('dragging', 'drag-over'));
       const at = getRowAt(clientY);
       const src = dragState.srcIdx;
       dragState = null;
       if (at) commitReorder(src, at);
     }
 
-    // 滑鼠
     guestList.addEventListener('mousedown', (e) => {
-      if (e.button !== 0 || e.target.closest('.btn-icon')) return;
+      if (e.button !== 0 || e.target.closest('[data-action]')) return;
       startDrag(e.target.closest('tr'), e.clientY);
     });
+    document.addEventListener('mousemove', (e) => { if (dragState) { e.preventDefault(); moveDrag(e.clientY); } });
+    document.addEventListener('mouseup', (e) => { if (dragState) endDrag(e.clientY); });
 
-    document.addEventListener('mousemove', (e) => {
-      if (!dragState) return;
-      e.preventDefault();
-      moveDrag(e.clientY);
-    });
-
-    document.addEventListener('mouseup', (e) => {
-      if (!dragState) return;
-      endDrag(e.clientY);
-    });
-
-    // 觸控
     guestList.addEventListener('touchstart', (e) => {
-      if (e.target.closest('.btn-icon')) return;
+      if (e.target.closest('[data-action]')) return;
       startDrag(e.target.closest('tr'), e.touches[0].clientY);
     }, { passive: true });
+    guestList.addEventListener('touchmove', (e) => { if (dragState) { e.preventDefault(); moveDrag(e.touches[0].clientY); } }, { passive: false });
+    guestList.addEventListener('touchend', (e) => { if (dragState) endDrag(e.changedTouches[0].clientY); }, { passive: true });
 
-    guestList.addEventListener('touchmove', (e) => {
-      if (!dragState) return;
-      e.preventDefault();
-      moveDrag(e.touches[0].clientY);
-    }, { passive: false });
+    // ── 範本儲存 ──
+    const STORAGE_KEY = 'gn_templates';
+    const templateOutBtn = document.getElementById('templateOutBtn');
+    const saveDialog = document.getElementById('saveDialog');
+    const saveCount = document.getElementById('saveCount');
+    const saveDialogInput = document.getElementById('saveDialogInput');
+    const saveDialogConfirm = document.getElementById('saveDialogConfirm');
+    const saveDialogCancel = document.getElementById('saveDialogCancel');
 
-    guestList.addEventListener('touchend', (e) => {
-      if (!dragState) return;
-      endDrag(e.changedTouches[0].clientY);
-    }, { passive: true });
-
-    function confirmDelete(id, name) {
-      pendingDeleteId = id;
-      deleteText.textContent = `確定要刪除「${escapeHtml(name)}」嗎？`;
-      deleteOverlay.classList.add('active');
-    }
-
-    async function deleteGuest() {
-      if (!pendingDeleteId) return;
-
-      deleteOk.disabled = true;
-      deleteOk.textContent = '刪除中...';
-
-      try {
-        await db.collection('guests').doc(pendingDeleteId).delete();
-        await loadGuests();
-      } catch (err) {
-        console.error(err);
-        alert('刪除失敗，請稍後再試');
-      } finally {
-        deleteOk.disabled = false;
-        deleteOk.textContent = '確定刪除';
-        deleteOverlay.classList.remove('active');
-        pendingDeleteId = null;
-      }
-    }
-
-    async function clearGuests() {
-      confirmOk.disabled = true;
-      confirmOk.textContent = '清除中...';
-
-      try {
-        const snapshot = await db.collection('guests').get();
-        const batch = db.batch();
-        snapshot.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        await loadGuests();
-      } catch (err) {
-        console.error(err);
-        alert('清除失敗，請稍後再試');
-      } finally {
-        confirmOk.disabled = false;
-        confirmOk.textContent = '確定清空';
-        confirmOverlay.classList.remove('active');
-      }
-    }
-
-    // ── 事件監聽 ──
-
-    refreshBtn.addEventListener('click', loadGuests);
-
-    clearBtn.addEventListener('click', () => {
-      confirmOverlay.classList.add('active');
+    templateOutBtn.addEventListener('click', () => {
+      if (guestsCache.length === 0) { showToast('清單為空', 'info'); return; }
+      saveCount.textContent = guestsCache.length;
+      saveDialogInput.value = '';
+      saveDialog.classList.add('active');
+      setTimeout(() => saveDialogInput.focus(), 100);
     });
 
-    confirmOk.addEventListener('click', clearGuests);
-    confirmCancel.addEventListener('click', () => confirmOverlay.classList.remove('active'));
-    confirmOverlay.addEventListener('click', (e) => {
-      if (e.target === confirmOverlay) confirmOverlay.classList.remove('active');
+    saveDialogConfirm.addEventListener('click', () => {
+      const name = saveDialogInput.value.trim();
+      if (!name) { showToast('請輸入範本名稱', 'error'); return; }
+      const lines = guestsCache.map(g => `${g.name},${g.org || ''},${g.note || ''}`);
+      let templates;
+      try { templates = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { templates = []; }
+      const existing = templates.findIndex(t => t.name === name);
+      const entry = { name, lines, count: guestsCache.length, updatedAt: new Date().toISOString() };
+      if (existing >= 0) templates[existing] = entry;
+      else templates.push(entry);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+      saveDialog.classList.remove('active');
+      showToast(`範本「${name}」已儲存 (${guestsCache.length} 位)`, 'success');
     });
 
-    deleteOk.addEventListener('click', deleteGuest);
-    deleteCancel.addEventListener('click', () => {
-      deleteOverlay.classList.remove('active');
-      pendingDeleteId = null;
-    });
-    deleteOverlay.addEventListener('click', (e) => {
-      if (e.target === deleteOverlay) {
-        deleteOverlay.classList.remove('active');
-        pendingDeleteId = null;
-      }
-    });
+    saveDialogCancel.addEventListener('click', () => saveDialog.classList.remove('active'));
+    saveDialogInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveDialogConfirm.click(); if (e.key === 'Escape') saveDialog.classList.remove('active'); });
+    saveDialog.addEventListener('click', (e) => { if (e.target === saveDialog) saveDialog.classList.remove('active'); });
 
-    document.addEventListener('click', async (e) => {
-      const btn = e.target.closest('.btn-icon');
-      if (!btn) return;
-
-      const tr = btn.closest('tr');
-      if (!tr) return;
-      const idx = tr.rowIndex - 1;
-
-      if (btn.classList.contains('btn-up')) await moveGuest(idx, 'up');
-      else if (btn.classList.contains('btn-down')) await moveGuest(idx, 'down');
-      else if (btn.classList.contains('btn-icon-del')) {
-        const guest = guestsCache[idx];
-        if (guest) confirmDelete(guest.id, guest.name);
-      }
-    });
-
-    loadGuests();
+    startListener();
   </script>
 </body>
 </html>
