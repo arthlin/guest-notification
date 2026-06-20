@@ -761,11 +761,27 @@
     async function executeBatchDelete(ids) {
       confirmOverlay.classList.remove('active');
       selectAll.checked = false;
+      const deleted = ids.map(id => guestsCache.find(g => g.id === id)).filter(Boolean).map(g => ({ ...g }));
       try {
         const batch = db.batch();
         ids.forEach(id => batch.delete(db.collection('guests').doc(id)));
         await batch.commit();
-        showToast(`已刪除 ${ids.length} 位來賓`, 'success');
+        showToast(`已刪除 ${deleted.length} 位來賓`, 'undo', async () => {
+          try {
+            const restoreBatch = db.batch();
+            deleted.forEach(g => {
+              const ref = db.collection('guests').doc(g.id);
+              restoreBatch.set(ref, {
+                name: g.name, org: g.org || '', note: g.note || '',
+                sortOrder: g.sortOrder, checkedIn: g.checkedIn || false,
+                checkedInAt: g.checkedInAt || null,
+                createdAt: g.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+              });
+            });
+            await restoreBatch.commit();
+            showToast('已復原', 'success');
+          } catch (err) { console.error(err); showToast('復原失敗', 'error'); }
+        });
       } catch (err) {
         console.error(err);
         showToast('刪除失敗', 'error');
@@ -799,12 +815,28 @@
       showConfirm('確定要清空所有來賓名單嗎？', async () => {
         confirmOverlay.classList.remove('active');
         try {
+          const cleared = guestsCache.map(g => ({ ...g }));
           const snapshot = await db.collection('guests').get();
           if (snapshot.empty) return;
           const batch = db.batch();
           snapshot.forEach(doc => batch.delete(doc.ref));
           await batch.commit();
-          showToast('已清空', 'success');
+          showToast(`已清空 ${cleared.length} 位來賓`, 'undo', async () => {
+            try {
+              const restoreBatch = db.batch();
+              cleared.forEach(g => {
+                const ref = db.collection('guests').doc(g.id);
+                restoreBatch.set(ref, {
+                  name: g.name, org: g.org || '', note: g.note || '',
+                  sortOrder: g.sortOrder, checkedIn: g.checkedIn || false,
+                  checkedInAt: g.checkedInAt || null,
+                  createdAt: g.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+                });
+              });
+              await restoreBatch.commit();
+              showToast('已復原全部來賓', 'success');
+            } catch (err) { console.error(err); showToast('復原失敗', 'error'); }
+          });
         } catch (err) { console.error(err); showToast('清除失敗', 'error'); }
       });
     }
