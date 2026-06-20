@@ -263,6 +263,27 @@
     .btn-dialog-confirm { padding: 8px 20px; border: none; border-radius: 8px; background: #4f46e5; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
     .btn-dialog-confirm:hover { background: #4338ca; }
     .btn-dialog-cancel:hover { background: #f3f4f6; }
+    .qrcode-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .qrcode-overlay.active { display: flex; }
+    .qrcode-box {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      animation: fadeIn 0.2s;
+    }
+    .qrcode-box img { width: 220px; height: 220px; display: block; margin: 0 auto 16px; border-radius: 8px; }
+    .qrcode-box .url { font-size: 12px; color: #9ca3af; word-break: break-all; margin-bottom: 16px; }
+    .qrcode-box .btn-close { padding: 8px 24px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
+    .qrcode-box .btn-close:hover { background: #f3f4f6; }
     @media (max-width: 480px) {
       .container { padding: 24px 16px; }
       h1 { font-size: 22px; }
@@ -324,6 +345,17 @@
 
     <div class="links">
       <a href="output.html">檢視來賓清單</a>
+      <span style="margin:0 8px;color:#d1d5db">|</span>
+      <a href="#" id="qrBtn">顯示 QR Code</a>
+    </div>
+  </div>
+
+  <!-- QR Code -->
+  <div class="qrcode-overlay" id="qrOverlay">
+    <div class="qrcode-box">
+      <img id="qrImg" alt="QR Code">
+      <div class="url" id="qrUrl"></div>
+      <button class="btn-close" id="qrClose">關閉</button>
     </div>
   </div>
 
@@ -401,6 +433,7 @@
           org,
           note,
           sortOrder: genSortOrder(),
+          checkedIn: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         showToast('送出成功！', 'success');
@@ -466,6 +499,7 @@
             org: g.org,
             note: g.note,
             sortOrder: g.sortOrder,
+            checkedIn: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         });
@@ -605,6 +639,25 @@
 
     // Initial load
     refreshTemplateSelect();
+
+    // ── QR Code ──
+    const qrBtn = document.getElementById('qrBtn');
+    const qrOverlay = document.getElementById('qrOverlay');
+    const qrImg = document.getElementById('qrImg');
+    const qrUrl = document.getElementById('qrUrl');
+    const qrClose = document.getElementById('qrClose');
+
+    qrBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = window.location.href.replace(/\/[^/]*\.html$/, '/input.html');
+      qrUrl.textContent = url;
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+      qrImg.onerror = () => { qrImg.style.display = 'none'; qrUrl.textContent = 'QR Code 載入失敗'; };
+      qrOverlay.classList.add('active');
+    });
+
+    qrClose.addEventListener('click', () => qrOverlay.classList.remove('active'));
+    qrOverlay.addEventListener('click', (e) => { if (e.target === qrOverlay) qrOverlay.classList.remove('active'); });
 
     // Auto-focus name field
     document.getElementById('name').focus();

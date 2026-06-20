@@ -15,17 +15,14 @@
       min-height: 100vh;
       padding: 40px 20px;
     }
-    .container { max-width: 960px; margin: 0 auto; }
+    .container { max-width: 1000px; margin: 0 auto; }
     h1 {
       text-align: center;
       font-size: 28px;
       margin-bottom: 4px;
       color: #1a1a2e;
     }
-    .status-bar {
-      text-align: center;
-      margin-bottom: 8px;
-    }
+    .status-bar { text-align: center; margin-bottom: 8px; }
     .status-badge {
       display: inline-block;
       padding: 3px 10px;
@@ -39,13 +36,13 @@
       text-align: center;
       font-size: 13px;
       color: #9ca3af;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
     .toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       gap: 10px;
       flex-wrap: wrap;
     }
@@ -70,7 +67,7 @@
       outline: none;
       padding: 9px 8px;
       font-size: 14px;
-      width: 160px;
+      width: 140px;
       background: transparent;
     }
     .search-box .icon { color: #9ca3af; font-size: 14px; }
@@ -89,12 +86,9 @@
     .btn-primary:hover:not(:disabled) { background: #4338ca; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-danger:hover:not(:disabled) { background: #dc2626; }
-    .btn-outline {
-      background: white;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
+    .btn-outline { background: white; color: #374151; border: 1px solid #d1d5db; }
     .btn-outline:hover:not(:disabled) { background: #f3f4f6; }
+    .btn-outline.active { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
     .btn-back {
       background: #e5e7eb;
       color: #374151;
@@ -112,6 +106,26 @@
       font-weight: 600;
       white-space: nowrap;
     }
+    .sort-group {
+      display: flex;
+      gap: 2px;
+      background: #e5e7eb;
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .sort-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: #6b7280;
+      transition: all 0.15s;
+    }
+    .sort-btn:hover { color: #374151; }
+    .sort-btn.active { background: white; color: #4f46e5; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .table-wrap {
       overflow-x: auto;
       border-radius: 12px;
@@ -125,13 +139,13 @@
     th {
       background: #1a1a2e;
       color: white;
-      padding: 14px 16px;
+      padding: 14px 12px;
       text-align: left;
       font-size: 14px;
       white-space: nowrap;
     }
     td {
-      padding: 12px 16px;
+      padding: 12px;
       border-bottom: 1px solid #f0f0f0;
       font-size: 14px;
       color: #1f2937;
@@ -181,10 +195,9 @@
     .btn-icon-cancel { background: #e5e7eb; border-color: #d1d5db; }
     .btn-icon-cancel:hover { background: #d1d5db; }
 
-    td.name-cell { font-weight: 600; min-width: 6em; }
-    td.org-cell { min-width: 5em; }
-    td.note-cell { max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85em; }
-    td.note-cell.expanded { white-space: normal; max-width: none; }
+    td.name-cell { font-weight: 600; min-width: 5em; }
+    td.org-cell { min-width: 4em; }
+    td.note-cell { max-width: 6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b7280; font-size: 0.85em; }
 
     .edit-input {
       width: 100%;
@@ -197,7 +210,68 @@
       box-shadow: 0 0 0 2px rgba(79,70,229,0.15);
     }
 
-    .confirm-overlay {
+    /* Checkbox column */
+    th.chk-col { width: 36px; text-align: center; padding: 14px 4px; }
+    td.chk-col { width: 36px; text-align: center; padding: 12px 4px; }
+    .chk-col input[type=checkbox] { width: 17px; height: 17px; cursor: pointer; accent-color: #4f46e5; vertical-align: middle; }
+
+    /* Check-in status */
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-dot .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot .dot.in { background: #059669; }
+    .status-dot .dot.out { background: #d1d5db; }
+    .status-dot.in { color: #059669; }
+    .status-dot.out { color: #9ca3af; }
+    .checkin-time { font-size: 11px; color: #9ca3af; font-weight: 400; margin-left: 2px; }
+
+    /* Batch action bar */
+    .batch-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      animation: slideDown 0.2s;
+    }
+    .batch-bar.active { display: flex; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .batch-bar .count { font-weight: 600; }
+    .batch-bar .btn { padding: 6px 16px; font-size: 13px; }
+
+    /* Undo toast */
+    .toast-undo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toast-undo .btn-undo {
+      padding: 4px 12px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .toast-undo .btn-undo:hover { background: rgba(255,255,255,0.25); }
+
+    .confirm-overlay, .save-dialog-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -206,8 +280,8 @@
       align-items: center;
       z-index: 100;
     }
-    .confirm-overlay.active { display: flex; }
-    .confirm-box {
+    .confirm-overlay.active, .save-dialog-overlay.active { display: flex; }
+    .confirm-box, .save-dialog {
       background: white;
       border-radius: 16px;
       padding: 32px;
@@ -219,27 +293,9 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .confirm-box p { font-size: 16px; margin-bottom: 24px; color: #1f2937; }
     .confirm-actions { display: flex; gap: 12px; justify-content: center; }
-
-    .save-dialog-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-    .save-dialog-overlay.active { display: flex; }
-    .save-dialog {
-      background: white;
-      border-radius: 16px;
-      padding: 28px;
-      width: 340px;
-      max-width: 90vw;
-      animation: fadeIn 0.2s;
-    }
-    .save-dialog h3 { font-size: 16px; margin-bottom: 4px; color: #1f2937; }
-    .save-dialog-info { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+    .save-dialog { text-align: left; }
+    .save-dialog h3 { font-size: 16px; margin-bottom: 4px; color: #1f2937; text-align: center; }
+    .save-dialog-info { font-size: 13px; color: #6b7280; margin-bottom: 16px; text-align: center; }
     .save-dialog input {
       width: 100%;
       padding: 10px 12px;
@@ -251,10 +307,7 @@
     }
     .save-dialog input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
     .save-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .btn-dialog-cancel { padding: 8px 20px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
-    .btn-dialog-confirm { padding: 8px 20px; border: none; border-radius: 8px; background: #4f46e5; color: white; cursor: pointer; font-size: 14px; font-weight: 600; }
-    .btn-dialog-confirm:hover { background: #4338ca; }
-    .btn-dialog-cancel:hover { background: #f3f4f6; }
+
     .toast {
       position: fixed;
       bottom: 24px;
@@ -270,24 +323,32 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-    .toast.success { background: #d1fae5; color: #065f46; display: block; }
-    .toast.error { background: #fee2e2; color: #991b1b; display: block; }
-    .toast.info { background: #dbeafe; color: #1e40af; display: block; }
+    .toast.success { background: #059669; color: white; display: block; }
+    .toast.error { background: #ef4444; color: white; display: block; }
+    .toast.info { background: #1e40af; color: white; display: block; }
+    .toast.undo {
+      background: #1a1a2e;
+      color: white;
+      display: block;
+      padding: 8px 16px;
+    }
 
     @media (max-width: 600px) {
       body { padding: 16px 10px; }
       h1 { font-size: 22px; }
       .toolbar { flex-direction: column; align-items: stretch; }
       .toolbar-left, .toolbar-right { justify-content: center; }
-      .search-box input { width: 120px; }
-      th, td { padding: 10px 8px; font-size: 13px; }
-      td.name-cell { min-width: 4em; font-size: 1em; }
-      td.org-cell { min-width: 3em; font-size: 0.85em; }
+      .search-box input { width: 100px; }
+      th, td { padding: 8px 6px; font-size: 12px; }
+      td.name-cell { min-width: 3.5em; font-size: 0.95em; }
+      td.org-cell { min-width: 2.5em; font-size: 0.8em; }
       td.note-cell { display: none; }
       th:nth-child(3) { display: none; }
-      .action-cell { gap: 2px; }
+      .sort-btn { padding: 4px 8px; font-size: 11px; }
       .btn-icon { padding: 3px 5px; font-size: 11px; }
       .btn { padding: 8px 12px; font-size: 12px; }
+      th.chk-col, td.chk-col { width: 28px; }
+      .chk-col input[type=checkbox] { width: 15px; height: 15px; }
     }
   </style>
 </head>
@@ -303,9 +364,14 @@
       <div class="toolbar-left">
         <a href="input.html" class="btn btn-back">新增來賓</a>
         <span class="count-badge" id="countBadge">0 位</span>
+        <div class="sort-group" id="sortGroup">
+          <button class="sort-btn active" data-sort="default">預設</button>
+          <button class="sort-btn" data-sort="name">姓名</button>
+          <button class="sort-btn" data-sort="checkin">報到</button>
+        </div>
         <div class="search-box">
           <span class="icon">&#x1F50D;</span>
-          <input type="text" id="searchInput" placeholder="搜尋姓名/單位..." autocomplete="off">
+          <input type="text" id="searchInput" placeholder="搜尋..." autocomplete="off">
         </div>
       </div>
       <div class="toolbar-right">
@@ -315,18 +381,25 @@
       </div>
     </div>
 
+    <div class="batch-bar" id="batchBar">
+      <span>已選 <span class="count" id="selectedCount">0</span> 位</span>
+      <button class="btn btn-danger" id="batchDelBtn">刪除所選</button>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th class="chk-col"><input type="checkbox" id="selectAll"></th>
             <th style="width:auto">姓名</th>
             <th style="width:auto">單位</th>
             <th style="width:auto">備註</th>
+            <th style="width:80px">報到</th>
             <th style="width:130px">操作</th>
           </tr>
         </thead>
         <tbody id="guestList">
-          <tr><td colspan="4" class="loading">載入中...</td></tr>
+          <tr><td colspan="6" class="loading">載入中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -337,21 +410,10 @@
   <!-- 清空確認 -->
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
-      <p>確定要清空所有來賓名單嗎？</p>
+      <p id="confirmText">確定要清空所有來賓名單嗎？</p>
       <div class="confirm-actions">
         <button class="btn btn-outline" id="confirmCancel">取消</button>
-        <button class="btn btn-danger" id="confirmOk">確定清空</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 刪除確認 -->
-  <div class="confirm-overlay" id="deleteOverlay">
-    <div class="confirm-box">
-      <p id="deleteText">確定要刪除嗎？</p>
-      <div class="confirm-actions">
-        <button class="btn btn-outline" id="deleteCancel">取消</button>
-        <button class="btn btn-danger" id="deleteOk">確定刪除</button>
+        <button class="btn btn-danger" id="confirmOk">確定</button>
       </div>
     </div>
   </div>
@@ -363,8 +425,8 @@
       <p class="save-dialog-info">將儲存 <span id="saveCount">0</span> 位來賓</p>
       <input type="text" id="saveDialogInput" placeholder="輸入範本名稱..." maxlength="30" autocomplete="off">
       <div class="save-dialog-actions">
-        <button class="btn-dialog-cancel" id="saveDialogCancel">取消</button>
-        <button class="btn-dialog-confirm" id="saveDialogConfirm">儲存</button>
+        <button class="btn btn-outline" id="saveDialogCancel">取消</button>
+        <button class="btn btn-primary" id="saveDialogConfirm">儲存</button>
       </div>
     </div>
   </div>
@@ -378,19 +440,23 @@
     const exportBtn = document.getElementById('exportBtn');
     const statusBadge = document.getElementById('statusBadge');
     const toast = document.getElementById('toast');
+    const selectAll = document.getElementById('selectAll');
+    const batchBar = document.getElementById('batchBar');
+    const selectedCount = document.getElementById('selectedCount');
+    const batchDelBtn = document.getElementById('batchDelBtn');
+    const sortGroup = document.getElementById('sortGroup');
 
     const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmText = document.getElementById('confirmText');
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
-    const deleteOverlay = document.getElementById('deleteOverlay');
-    const deleteText = document.getElementById('deleteText');
-    const deleteOk = document.getElementById('deleteOk');
-    const deleteCancel = document.getElementById('deleteCancel');
 
     let guestsCache = [];
-    let pendingDeleteId = null;
     let editRowId = null;
     let unsubscribe = null;
+    let sortMode = 'default';
+    let undoStack = [];
+    let confirmCallback = null;
 
     function fmt(d) {
       const date = d instanceof Date ? d : d?.toDate ? d.toDate() : new Date();
@@ -399,55 +465,136 @@
       return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
     }
 
+    function fmtShort(d) {
+      const date = d instanceof Date ? d : d?.toDate ? d.toDate() : new Date();
+      if (isNaN(date.getTime())) return '';
+      const p = n => String(n).padStart(2, '0');
+      return `${p(date.getHours())}:${p(date.getMinutes())}`;
+    }
+
     function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-    function showToast(msg, type) {
-      toast.textContent = msg;
-      toast.className = `toast ${type}`;
-      clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => { toast.className = 'toast'; }, 3000);
+    function showToast(msg, type, undoAction) {
+      if (undoAction) {
+        toast.className = 'toast undo';
+        toast.innerHTML = `<div class="toast-undo"><span>${msg}</span><button class="btn-undo" id="undoBtn">復原</button></div>`;
+        const undoBtn = document.getElementById('undoBtn');
+        undoBtn.addEventListener('click', () => { undoAction(); hideToast(); });
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(hideToast, 5000);
+      } else {
+        toast.textContent = msg;
+        toast.className = `toast ${type}`;
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(hideToast, 3000);
+      }
     }
+
+    function hideToast() { toast.className = 'toast'; toast.innerHTML = ''; }
+
+    function showConfirm(msg, callback) {
+      confirmText.textContent = msg;
+      confirmCallback = callback;
+      confirmOverlay.classList.add('active');
+    }
+
+    // Sorting
+    function getSorted() {
+      let list = [...guestsCache];
+      switch (sortMode) {
+        case 'name':
+          list.sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
+          break;
+        case 'checkin':
+          list.sort((a, b) => {
+            if (a.checkedIn && !b.checkedIn) return -1;
+            if (!a.checkedIn && b.checkedIn) return 1;
+            if (a.checkedIn && b.checkedIn) return (a.checkedInAt?.toMillis?.() || 0) - (b.checkedInAt?.toMillis?.() || 0);
+            return a.sortOrder - b.sortOrder;
+          });
+          break;
+        default:
+          list.sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity));
+      }
+      return list;
+    }
+
+    sortGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('.sort-btn');
+      if (!btn) return;
+      sortMode = btn.dataset.sort;
+      sortGroup.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateUI();
+    });
 
     function getFiltered() {
       const q = searchInput.value.trim().toLowerCase();
-      if (!q) return guestsCache;
-      return guestsCache.filter(g =>
+      if (!q) return getSorted();
+      return getSorted().filter(g =>
         (g.name && g.name.toLowerCase().includes(q)) ||
         (g.org && g.org.toLowerCase().includes(q)) ||
         (g.note && g.note.toLowerCase().includes(q))
       );
     }
 
+    function getCheckedIds() {
+      const ids = [];
+      guestList.querySelectorAll('input[type=checkbox].guest-check:checked').forEach(cb => ids.push(cb.value));
+      return ids;
+    }
+
+    function updateBatchBar() {
+      const checked = getCheckedIds();
+      const show = checked.length > 0;
+      batchBar.classList.toggle('active', show);
+      selectedCount.textContent = checked.length;
+    }
+
+    function updateUI() {
+      renderGuests();
+      updateBatchBar();
+      const checked = getCheckedIds().length;
+      selectAll.checked = checked > 0 && checked === guestList.querySelectorAll('input[type=checkbox].guest-check').length;
+    }
+
     function renderGuests() {
       const filtered = getFiltered();
+      const checkedIds = getCheckedIds();
       countBadge.textContent = `${guestsCache.length} 位`;
 
       if (guestsCache.length === 0) {
-        guestList.innerHTML = '<tr><td colspan="4" class="empty">目前尚無來賓</td></tr>';
+        guestList.innerHTML = '<tr><td colspan="6" class="empty">目前尚無來賓</td></tr>';
         return;
       }
-
       if (filtered.length === 0) {
-        guestList.innerHTML = '<tr><td colspan="4" class="filtered-empty">無符合篩選條件的來賓</td></tr>';
+        guestList.innerHTML = '<tr><td colspan="6" class="filtered-empty">無符合條件的來賓</td></tr>';
         return;
       }
 
       guestList.innerHTML = filtered.map((g, viewIdx) => {
         const realIdx = guestsCache.indexOf(g);
         const isEditing = editRowId === g.id;
+        const checkedIn = g.checkedIn === true;
         return `
           <tr draggable="true" data-index="${realIdx}" data-id="${g.id}">
-            <td class="name-cell">${isEditing ? `<input class="edit-input" id="edit_name_${g.id}" value="${esc(g.name)}">` : `<strong>${esc(g.name)}</strong>`}</td>
+            <td class="chk-col"><input type="checkbox" class="guest-check" value="${g.id}" ${checkedIds.includes(g.id) ? 'checked' : ''}></td>
+            <td class="name-cell">${isEditing ? `<input class="edit-input" id="edit_name_${g.id}" value="${esc(g.name)}">` : esc(g.name)}</td>
             <td class="org-cell">${isEditing ? `<input class="edit-input" id="edit_org_${g.id}" value="${esc(g.org || '')}">` : esc(g.org || '')}</td>
             <td class="note-cell" title="${esc(g.note || '')}">${isEditing ? `<input class="edit-input" id="edit_note_${g.id}" value="${esc(g.note || '')}">` : esc(g.note || '')}</td>
+            <td>
+              ${checkedIn
+                ? `<span class="status-dot in"><span class="dot in"></span>已報到<span class="checkin-time">${g.checkedInAt ? fmtShort(g.checkedInAt) : ''}</span></span>`
+                : `<span class="status-dot out"><span class="dot out"></span>未報到</span>`
+              }
+            </td>
             <td>
               <div class="action-cell">
                 ${isEditing ? `
                   <button class="btn-icon btn-icon-save" data-action="save" data-id="${g.id}">儲存</button>
                   <button class="btn-icon btn-icon-cancel" data-action="cancel" data-id="${g.id}">取消</button>
                 ` : `
-                  <button class="btn-icon btn-up" data-action="up" data-id="${g.id}" ${viewIdx === 0 ? 'disabled' : ''} title="上移">&#x2B06;</button>
-                  <button class="btn-icon btn-down" data-action="down" data-id="${g.id}" ${viewIdx === filtered.length - 1 ? 'disabled' : ''} title="下移">&#x2B07;</button>
+                  <button class="btn-icon" data-action="checkin" data-id="${g.id}" title="${checkedIn ? '取消報到' : '標記報到'}">${checkedIn ? '↩' : '✓'}</button>
                   <button class="btn-icon btn-icon-edit" data-action="edit" data-id="${g.id}" title="編輯">&#x270F;</button>
                   <button class="btn-icon btn-icon-del" data-action="delete" data-id="${g.id}" title="刪除">&#x1F5D1;</button>
                 `}
@@ -467,17 +614,25 @@
           guestsCache = [];
           snapshot.forEach(doc => {
             const d = doc.data();
-            guestsCache.push({ id: doc.id, sortOrder: d.sortOrder ?? Infinity, name: d.name || '', org: d.org || '', note: d.note || '', createdAt: d.createdAt });
+            guestsCache.push({
+              id: doc.id,
+              sortOrder: d.sortOrder ?? Infinity,
+              name: d.name || '',
+              org: d.org || '',
+              note: d.note || '',
+              createdAt: d.createdAt,
+              checkedIn: d.checkedIn === true,
+              checkedInAt: d.checkedInAt || null
+            });
           });
-          // If a row is being edited and its data changed externally, exit edit mode
           if (editRowId && !guestsCache.find(g => g.id === editRowId)) {
             editRowId = null;
           }
-          renderGuests();
+          updateUI();
           updateTime.textContent = fmt(new Date());
         }, (err) => {
           console.error('Snapshot error:', err);
-          guestList.innerHTML = '<tr><td colspan="4" class="empty">讀取失敗</td></tr>';
+          guestList.innerHTML = '<tr><td colspan="6" class="empty">讀取失敗</td></tr>';
         });
     }
 
@@ -490,8 +645,15 @@
     window.addEventListener('offline', updateConnectionStatus);
     window.addEventListener('online', updateConnectionStatus);
 
-    // Search
-    searchInput.addEventListener('input', renderGuests);
+    // Checkbox: select all
+    selectAll.addEventListener('change', () => {
+      guestList.querySelectorAll('input[type=checkbox].guest-check').forEach(cb => cb.checked = selectAll.checked);
+      updateBatchBar();
+    });
+
+    guestList.addEventListener('change', (e) => {
+      if (e.target.classList.contains('guest-check')) updateBatchBar();
+    });
 
     // Actions delegation
     guestList.addEventListener('click', async (e) => {
@@ -506,14 +668,12 @@
       const guest = guestsCache[idx];
 
       switch (action) {
-        case 'up': case 'down': {
-          await moveGuest(idx, action);
+        case 'checkin': {
+          await toggleCheckin(id, guest.checkedIn);
           break;
         }
         case 'delete': {
-          pendingDeleteId = id;
-          deleteText.textContent = `確定要刪除「${guest.name}」嗎？`;
-          deleteOverlay.classList.add('active');
+          showConfirm(`確定要刪除「${guest.name}」嗎？`, () => deleteSingleGuest(guest));
           break;
         }
         case 'edit': {
@@ -526,7 +686,7 @@
         }
         case 'cancel': {
           editRowId = null;
-          renderGuests();
+          updateUI();
           break;
         }
       }
@@ -534,19 +694,87 @@
 
     // Keyboard: Enter to save in edit mode
     guestList.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter' && editRowId) {
-        e.preventDefault();
-        await saveEdit(editRowId);
-      }
-      if (e.key === 'Escape' && editRowId) {
-        editRowId = null;
-        renderGuests();
-      }
+      if (e.key === 'Enter' && editRowId) { e.preventDefault(); await saveEdit(editRowId); }
+      if (e.key === 'Escape' && editRowId) { editRowId = null; updateUI(); }
     });
+
+    // Check-in toggle
+    async function toggleCheckin(id, currentlyCheckedIn) {
+      try {
+        if (currentlyCheckedIn) {
+          await db.collection('guests').doc(id).update({ checkedIn: false, checkedInAt: firebase.firestore.FieldValue.delete() });
+        } else {
+          await db.collection('guests').doc(id).update({ checkedIn: true, checkedInAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('操作失敗', 'error');
+      }
+    }
+
+    // Single delete with undo
+    async function deleteSingleGuest(guest) {
+      confirmOverlay.classList.remove('active');
+      try {
+        const docRef = db.collection('guests').doc(guest.id);
+        await docRef.delete();
+        undoStack.push({ ref: docRef, data: guest });
+        setTimeout(() => {
+          const i = undoStack.indexOf(guest);
+          if (i >= 0) undoStack.splice(i, 1);
+        }, 5000);
+        showToast(`已刪除「${guest.name}」`, 'undo', async () => {
+          const entry = undoStack.find(u => u.data.id === guest.id);
+          if (!entry) { showToast('已超過可復原時間', 'info'); return; }
+          try {
+            await entry.ref.set({
+              name: entry.data.name,
+              org: entry.data.org || '',
+              note: entry.data.note || '',
+              sortOrder: entry.data.sortOrder,
+              checkedIn: entry.data.checkedIn || false,
+              checkedInAt: entry.data.checkedInAt || null,
+              createdAt: entry.data.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+            });
+            const i = undoStack.indexOf(entry);
+            if (i >= 0) undoStack.splice(i, 1);
+            showToast('已復原', 'success');
+          } catch (err) {
+            console.error(err);
+            showToast('復原失敗', 'error');
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        showToast('刪除失敗', 'error');
+      }
+    }
+
+    // Batch delete
+    batchDelBtn.addEventListener('click', () => {
+      const ids = getCheckedIds();
+      if (ids.length === 0) return;
+      const names = ids.map(id => guestsCache.find(g => g.id === id)).filter(Boolean).map(g => g.name);
+      showConfirm(`確定要刪除所選 ${ids.length} 位來賓嗎？`, () => executeBatchDelete(ids));
+    });
+
+    async function executeBatchDelete(ids) {
+      confirmOverlay.classList.remove('active');
+      selectAll.checked = false;
+      try {
+        const batch = db.batch();
+        ids.forEach(id => batch.delete(db.collection('guests').doc(id)));
+        await batch.commit();
+        showToast(`已刪除 ${ids.length} 位來賓`, 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('刪除失敗', 'error');
+      }
+    }
 
     function enterEditMode(id) {
       editRowId = id;
-      renderGuests();
+      updateUI();
       requestAnimationFrame(() => {
         const input = document.getElementById(`edit_name_${id}`);
         if (input) { input.focus(); input.select(); }
@@ -558,80 +786,35 @@
       const orgEl = document.getElementById(`edit_org_${id}`);
       const noteEl = document.getElementById(`edit_note_${id}`);
       if (!nameEl) return;
-
       const name = nameEl.value.trim();
       if (!name) { showToast('姓名不可空白', 'error'); nameEl.focus(); return; }
-
       try {
-        await db.collection('guests').doc(id).update({
-          name,
-          org: orgEl.value.trim(),
-          note: noteEl.value.trim()
-        });
+        await db.collection('guests').doc(id).update({ name, org: orgEl.value.trim(), note: noteEl.value.trim() });
         editRowId = null;
         showToast('已更新', 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('更新失敗', 'error');
-      }
-    }
-
-    async function moveGuest(idx, direction) {
-      const otherIdx = direction === 'up' ? idx - 1 : idx + 1;
-      if (otherIdx < 0 || otherIdx >= guestsCache.length) return;
-      const a = guestsCache[idx];
-      const b = guestsCache[otherIdx];
-      const tmp = a.sortOrder;
-      try {
-        const batch = db.batch();
-        batch.update(db.collection('guests').doc(a.id), { sortOrder: b.sortOrder });
-        batch.update(db.collection('guests').doc(b.id), { sortOrder: tmp });
-        await batch.commit();
-      } catch (err) {
-        console.error(err);
-        showToast('排序失敗', 'error');
-      }
-    }
-
-    function confirmDeleteGuest() {
-      if (!pendingDeleteId) return;
-      deleteOk.disabled = true;
-      deleteOk.textContent = '刪除中...';
-      db.collection('guests').doc(pendingDeleteId).delete()
-        .then(() => { showToast('已刪除', 'success'); })
-        .catch(err => { console.error(err); showToast('刪除失敗', 'error'); })
-        .finally(() => {
-          deleteOk.disabled = false;
-          deleteOk.textContent = '確定刪除';
-          deleteOverlay.classList.remove('active');
-          pendingDeleteId = null;
-        });
+      } catch (err) { console.error(err); showToast('更新失敗', 'error'); }
     }
 
     function clearAllGuests() {
-      confirmOk.disabled = true;
-      confirmOk.textContent = '清除中...';
-      db.collection('guests').get()
-        .then(snapshot => {
+      showConfirm('確定要清空所有來賓名單嗎？', async () => {
+        confirmOverlay.classList.remove('active');
+        try {
+          const snapshot = await db.collection('guests').get();
           if (snapshot.empty) return;
           const batch = db.batch();
           snapshot.forEach(doc => batch.delete(doc.ref));
-          return batch.commit();
-        })
-        .then(() => { showToast('已清空', 'success'); })
-        .catch(err => { console.error(err); showToast('清除失敗', 'error'); })
-        .finally(() => {
-          confirmOk.disabled = false;
-          confirmOk.textContent = '確定清空';
-          confirmOverlay.classList.remove('active');
-        });
+          await batch.commit();
+          showToast('已清空', 'success');
+        } catch (err) { console.error(err); showToast('清除失敗', 'error'); }
+      });
     }
 
     // Export
     exportBtn.addEventListener('click', () => {
       if (guestsCache.length === 0) { showToast('清單為空', 'info'); return; }
-      const lines = guestsCache.map(g => `${g.name},${g.org || ''},${g.note || ''}`);
-      const csv = '\uFEFF' + '姓名,單位,備註\n' + lines.join('\n');
+      const headers = '姓名,單位,備註,報到';
+      const lines = guestsCache.map(g => `${g.name},${g.org || ''},${g.note || ''},${g.checkedIn ? '已報到' : '未報到'}`);
+      const csv = '\uFEFF' + headers + '\n' + lines.join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -644,17 +827,18 @@
       showToast(`已匯出 ${guestsCache.length} 筆`, 'success');
     });
 
-    // Clear & Delete event wiring
-    clearBtn.addEventListener('click', () => confirmOverlay.classList.add('active'));
-    confirmOk.addEventListener('click', clearAllGuests);
-    confirmCancel.addEventListener('click', () => confirmOverlay.classList.remove('active'));
-    confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) confirmOverlay.classList.remove('active'); });
+    // Clear
+    clearBtn.addEventListener('click', clearAllGuests);
 
-    deleteOk.addEventListener('click', confirmDeleteGuest);
-    deleteCancel.addEventListener('click', () => { deleteOverlay.classList.remove('active'); pendingDeleteId = null; });
-    deleteOverlay.addEventListener('click', (e) => { if (e.target === deleteOverlay) { deleteOverlay.classList.remove('active'); pendingDeleteId = null; } });
+    // Confirm dialog
+    confirmOk.addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
+    confirmCancel.addEventListener('click', () => { confirmOverlay.classList.remove('active'); confirmCallback = null; });
+    confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) { confirmOverlay.classList.remove('active'); confirmCallback = null; } });
 
-    // Drag & drop (mouse + touch)
+    // Search
+    searchInput.addEventListener('input', updateUI);
+
+    // Drag & drop (only in default sort mode)
     let dragState = null;
 
     function getRowAt(y) {
@@ -689,13 +873,11 @@
           if (g.sortOrder !== i) batch.update(db.collection('guests').doc(g.id), { sortOrder: i });
         });
         await batch.commit();
-      } catch (err) {
-        console.error('Reorder failed:', err);
-        showToast('排序失敗', 'error');
-      }
+      } catch (err) { console.error(err); showToast('排序失敗', 'error'); }
     }
 
     function startDrag(row, clientY) {
+      if (sortMode !== 'default') return;
       const rows = [...guestList.querySelectorAll('tr[data-index]')];
       const idx = rows.indexOf(row);
       if (idx < 0) return;
@@ -719,20 +901,20 @@
     }
 
     guestList.addEventListener('mousedown', (e) => {
-      if (e.button !== 0 || e.target.closest('[data-action]')) return;
+      if (e.button !== 0 || e.target.closest('[data-action]') || e.target.closest('input')) return;
       startDrag(e.target.closest('tr'), e.clientY);
     });
     document.addEventListener('mousemove', (e) => { if (dragState) { e.preventDefault(); moveDrag(e.clientY); } });
     document.addEventListener('mouseup', (e) => { if (dragState) endDrag(e.clientY); });
 
     guestList.addEventListener('touchstart', (e) => {
-      if (e.target.closest('[data-action]')) return;
+      if (e.target.closest('[data-action]') || e.target.closest('input')) return;
       startDrag(e.target.closest('tr'), e.touches[0].clientY);
     }, { passive: true });
     guestList.addEventListener('touchmove', (e) => { if (dragState) { e.preventDefault(); moveDrag(e.touches[0].clientY); } }, { passive: false });
     guestList.addEventListener('touchend', (e) => { if (dragState) endDrag(e.changedTouches[0].clientY); }, { passive: true });
 
-    // ── 範本儲存 ──
+    // Template save
     const STORAGE_KEY = 'gn_templates';
     const templateOutBtn = document.getElementById('templateOutBtn');
     const saveDialog = document.getElementById('saveDialog');
