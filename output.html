@@ -946,8 +946,7 @@
     guestList.addEventListener('touchmove', (e) => { if (dragState) { e.preventDefault(); moveDrag(e.touches[0].clientY); } }, { passive: false });
     guestList.addEventListener('touchend', (e) => { if (dragState) endDrag(e.changedTouches[0].clientY); }, { passive: true });
 
-    // Template save
-    const STORAGE_KEY = 'gn_templates';
+    // Template save (Firestore)
     const templateOutBtn = document.getElementById('templateOutBtn');
     const saveDialog = document.getElementById('saveDialog');
     const saveCount = document.getElementById('saveCount');
@@ -963,19 +962,18 @@
       setTimeout(() => saveDialogInput.focus(), 100);
     });
 
-    saveDialogConfirm.addEventListener('click', () => {
+    saveDialogConfirm.addEventListener('click', async () => {
       const name = saveDialogInput.value.trim();
       if (!name) { showToast('請輸入範本名稱', 'error'); return; }
       const lines = guestsCache.map(g => `${g.name},${g.org || ''},${g.note || ''}`);
-      let templates;
-      try { templates = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { templates = []; }
-      const existing = templates.findIndex(t => t.name === name);
-      const entry = { name, lines, count: guestsCache.length, updatedAt: new Date().toISOString() };
-      if (existing >= 0) templates[existing] = entry;
-      else templates.push(entry);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
-      saveDialog.classList.remove('active');
-      showToast(`範本「${name}」已儲存 (${guestsCache.length} 位)`, 'success');
+      try {
+        const q = await db.collection('templates').where('name', '==', name).get();
+        const entry = { name, lines, count: guestsCache.length, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+        if (!q.empty) await db.collection('templates').doc(q.docs[0].id).update(entry);
+        else await db.collection('templates').add(entry);
+        saveDialog.classList.remove('active');
+        showToast(`範本「${name}」已儲存 (${guestsCache.length} 位)`, 'success');
+      } catch (err) { console.error(err); showToast('儲存範本失敗', 'error'); }
     });
 
     saveDialogCancel.addEventListener('click', () => saveDialog.classList.remove('active'));

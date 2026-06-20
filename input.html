@@ -545,8 +545,7 @@
       }
     });
 
-    // ── 範本管理 ──
-    const STORAGE_KEY = 'gn_templates';
+    // ── 範本管理 (Firestore) ──
     const templateSelect = document.getElementById('templateSelect');
     const templateLoadBtn = document.getElementById('templateLoadBtn');
     const templateSaveBtn = document.getElementById('templateSaveBtn');
@@ -556,41 +555,39 @@
     const saveDialogInput = document.getElementById('saveDialogInput');
     const saveDialogConfirm = document.getElementById('saveDialogConfirm');
     const saveDialogCancel = document.getElementById('saveDialogCancel');
-
-    function getTemplates() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
-    }
-
-    function saveTemplates(templates) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
-    }
-
-    function refreshTemplateSelect() {
-      const templates = getTemplates();
-      const val = templateSelect.value;
-      templateSelect.innerHTML = '<option value="">-- 選擇範本 --</option>' +
-        templates.map((t, i) => `<option value="${i}">${escHtml(t.name)} (${t.count} 位)</option>`).join('');
-      templateSelect.value = templates.find(t => t.name === val) ? val : '';
-      templateLoadBtn.disabled = !templateSelect.value;
-      templateDelBtn.disabled = !templateSelect.value;
-      tplCount.textContent = templates.length ? `(${templates.length} 個)` : '';
-    }
+    let templatesCache = [];
 
     function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-    // Load template into batch textarea
+    async function loadTemplates() {
+      try {
+        const snap = await db.collection('templates').orderBy('name').get();
+        templatesCache = [];
+        snap.forEach(doc => { const d = doc.data(); templatesCache.push({ id: doc.id, name: d.name, lines: d.lines || [], count: d.count || 0 }); });
+        refreshTemplateSelect();
+      } catch (err) { console.error('載入範本失敗:', err); }
+    }
+
+    function refreshTemplateSelect() {
+      const val = templateSelect.value;
+      templateSelect.innerHTML = '<option value="">-- 選擇範本 --</option>' +
+        templatesCache.map((t, i) => `<option value="${i}">${escHtml(t.name)} (${t.count} 位)</option>`).join('');
+      templateSelect.value = templatesCache.find(t => t.name === val) ? val : '';
+      templateLoadBtn.disabled = !templateSelect.value;
+      templateDelBtn.disabled = !templateSelect.value;
+      tplCount.textContent = templatesCache.length ? `(${templatesCache.length} 個)` : '';
+    }
+
     templateLoadBtn.addEventListener('click', () => {
       const idx = parseInt(templateSelect.value);
       if (isNaN(idx)) return;
-      const templates = getTemplates();
-      const tpl = templates[idx];
+      const tpl = templatesCache[idx];
       if (!tpl) return;
       batchInput.value = tpl.lines.join('\n');
       batchInput.dispatchEvent(new Event('input'));
       showToast(`已載入「${tpl.name}」(${tpl.count} 位)`, 'success');
     });
 
-    // Save current batch as template
     templateSaveBtn.addEventListener('click', () => {
       const text = batchInput.value.trim();
       if (!text) { showToast('批次區沒有資料可儲存', 'error'); return; }
@@ -599,37 +596,36 @@
       setTimeout(() => saveDialogInput.focus(), 100);
     });
 
-    saveDialogConfirm.addEventListener('click', () => {
+    saveDialogConfirm.addEventListener('click', async () => {
       const name = saveDialogInput.value.trim();
       if (!name) { showToast('請輸入範本名稱', 'error'); return; }
       const text = batchInput.value.trim();
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const templates = getTemplates();
-      const existing = templates.findIndex(t => t.name === name);
-      const entry = { name, lines, count: lines.length, updatedAt: new Date().toISOString() };
-      if (existing >= 0) templates[existing] = entry;
-      else templates.push(entry);
-      saveTemplates(templates);
-      refreshTemplateSelect();
-      templateSelect.value = name;
-      saveDialog.classList.remove('active');
-      showToast(`範本「${name}」已儲存`, 'success');
+      try {
+        const q = await db.collection('templates').where('name', '==', name).get();
+        const entry = { name, lines, count: lines.length, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+        if (!q.empty) await db.collection('templates').doc(q.docs[0].id).update(entry);
+        else await db.collection('templates').add(entry);
+        await loadTemplates();
+        templateSelect.value = name;
+        saveDialog.classList.remove('active');
+        showToast(`範本「${name}」已儲存`, 'success');
+      } catch (err) { console.error(err); showToast('儲存範本失敗', 'error'); }
     });
 
     saveDialogCancel.addEventListener('click', () => saveDialog.classList.remove('active'));
     saveDialogInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveDialogConfirm.click(); if (e.key === 'Escape') saveDialog.classList.remove('active'); });
     saveDialog.addEventListener('click', (e) => { if (e.target === saveDialog) saveDialog.classList.remove('active'); });
 
-    // Delete template
-    templateDelBtn.addEventListener('click', () => {
+    templateDelBtn.addEventListener('click', async () => {
       const idx = parseInt(templateSelect.value);
       if (isNaN(idx)) return;
-      const templates = getTemplates();
-      const name = templates[idx].name;
-      templates.splice(idx, 1);
-      saveTemplates(templates);
-      refreshTemplateSelect();
-      showToast(`範本「${name}」已刪除`, 'info');
+      const tpl = templatesCache[idx];
+      try {
+        await db.collection('templates').doc(tpl.id).delete();
+        await loadTemplates();
+        showToast(`範本「${tpl.name}」已刪除`, 'info');
+      } catch (err) { console.error(err); showToast('刪除範本失敗', 'error'); }
     });
 
     templateSelect.addEventListener('change', () => {
@@ -637,8 +633,7 @@
       templateDelBtn.disabled = !templateSelect.value;
     });
 
-    // Initial load
-    refreshTemplateSelect();
+    loadTemplates();
 
     // ── QR Code ──
     const qrBtn = document.getElementById('qrBtn');
