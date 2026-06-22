@@ -2,6 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // 名片管理
+    match /businessCards/{cardId} {
+      allow read: if true;
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 50
+                    && request.resource.data.keys().hasAll(['name']);
+      allow update: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+      allow delete: if true;
+    }
+    match /guests/{guestId} {
+      allow read, write: if true;
+    }
+
     // 股市專案
     match /transactions/{docId} {
       allow read, write: if true;

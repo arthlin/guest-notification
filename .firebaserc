@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "teachstudy-b8b64"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }
